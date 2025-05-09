@@ -6,7 +6,7 @@ import (
 	"runtime/debug"
 	"time"
 
-	"ms_baskets/pkg/request_id"
+	"otus_social_network/app/pkg/request_id"
 
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/rs/zerolog"
