@@ -1,22 +1,17 @@
 package server
 
 import (
-	"ms_baskets/internal/api"
-	zerolog "ms_baskets/internal/app/middleware/logger"
-	"ms_baskets/pkg/logger"
-	"ms_baskets/pkg/request_id"
+	"otus_social_network/internal/app/handlers"
 
 	"github.com/go-chi/chi"
-	"gorm.io/gorm"
+	"github.com/go-chi/chi/middleware"
 )
 
-func ConfigureRouting(router *chi.Mux, gormIns *gorm.DB, logger *logger.Logger) *chi.Mux {
-	router.Use(request_id.RequestID)
-	router.Use(zerolog.New(logger.GetLogger()))
+func ConfigureRouting() chi.Router {
+	handlers := handlers.Init()
+	r := chi.NewRouter()
+	r.Use(middleware.Logger)
+	r.Get("/users/{id}", handlers.GetItem)
 
-	router.Route("/api", func(r chi.Router) {
-		r.Route("/baskets", api.SetupBasketsRoutes(logger, gormIns).Init)
-	})
-
-	return router
+	return r
 }
