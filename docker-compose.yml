@@ -1,26 +1,26 @@
 services:
-  nginx:
-    image: nginx:stable-alpine
-    container_name: nginx-social-network
-    ports:
-      - ${PORT}:3101
-    volumes:
-      - ./app:/var/www/social_network
-      - ./config/nginx/default.conf:/etc/nginx/conf.d/default.conf
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    env_file: ".env"
+  # nginx:
+  #   image: nginx:stable-alpine
+  #   container_name: nginx-social-network
+  #   ports:
+  #     - ${NGINX_PORT}:80
+  #   volumes:
+  #     - ./app:/var/www/social_network
+  #     - ./config/nginx/default.conf.template:/etc/nginx/conf.d/default.conf
+  #   extra_hosts:
+  #     - "host.docker.internal:host-gateway"
+  #   env_file: ".env"
 
   postgres:
     image: postgres:16.1-alpine3.18
     container_name: postgres-soc-network
     environment:
-      POSTGRES_DB: ${DATABASE_NAME}
-      POSTGRES_USER: ${DATABASE_USER}
-      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       TZ: Europe/Moscow
     ports:
-      - ${DATABASE_PORT}:5432
+      - ${DB_PORT}:5432
     volumes:
       - ./db_data:/var/lib/postgresql/data
     restart: always

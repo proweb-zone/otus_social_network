@@ -17,8 +17,9 @@ type Config struct {
 }
 
 type HTTPServer struct {
-	Address string `yaml:"address" env-default:"localhost:8080"`
-	Timeout int    `yaml:"timeout" env-default:"2"`
+	Address    string `yaml:"address" env-default:"localhost:8080"`
+	Timeout    int    `yaml:"timeout" env-default:"2"`
+	ServerPort string `yaml:"server_port"`
 }
 
 type Db struct {
@@ -29,6 +30,7 @@ type Db struct {
 	User     string `yaml:"db_User"`
 	Password string `yaml:"db_Password"`
 	Option   string `yaml:"db_option"`
+	StrConn  string `yaml:"db_url"`
 }
 
 func MustInit(configPath string) *Config {
@@ -37,8 +39,9 @@ func MustInit(configPath string) *Config {
 	return &Config{
 		Env: MustGetEnv("ENV"),
 		HTTPServer: HTTPServer{
-			Address: MustGetEnv("HTTP_SERVER_ADDRESS"),
-			Timeout: MustGetEnvAsInt("HTTP_TIMEOUT"),
+			Address:    MustGetEnv("HTTP_SERVER_ADDRESS"),
+			Timeout:    MustGetEnvAsInt("HTTP_TIMEOUT"),
+			ServerPort: MustGetEnv("SERVER_PORT"),
 		},
 		Db: Db{
 			Driver:   MustGetEnv("DB_DRIVER"),
@@ -48,6 +51,7 @@ func MustInit(configPath string) *Config {
 			User:     MustGetEnv("DB_USER"),
 			Password: MustGetEnv("DB_PASSWORD"),
 			Option:   MustGetEnv("DB_OPTION"),
+			StrConn:  MustGetEnv("DB_URL"),
 		},
 	}
 }

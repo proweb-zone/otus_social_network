@@ -2,23 +2,21 @@ package server
 
 import (
 	"net/http"
-	"time"
-
+	"otus_social_network/internal/app/handlers"
 	"otus_social_network/internal/config"
 
 	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 	_ "github.com/lib/pq"
 )
 
-func StartServer(router *chi.Mux, config *config.Config) *http.Server {
+func StartServer(config *config.Config) {
+	handlers := handlers.Init(config)
 
-	server := &http.Server{
-		Addr:         config.HTTPServer.Address,
-		Handler:      router,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 30 * time.Second,
-		IdleTimeout:  90 * time.Second,
-	}
-
-	return server
+	r := chi.NewRouter()
+	r.Use(middleware.Logger)
+	r.Post("/login", handlers.Login)
+	r.Put("/user/register", handlers.Register)
+	r.Get("/user/get/{id}", handlers.GetUser)
+	http.ListenAndServe(config.HTTPServer.ServerPort, r)
 }
