@@ -2,6 +2,7 @@ package utils
 
 import (
 	"os"
+	"path/filepath"
 )
 
 // func DecodeJson(body []byte, result any) error {
@@ -37,25 +38,9 @@ func GetProjectPath() string {
 	}
 
 	currentDir, _ := os.Getwd()
-	return currentDir
+
+	// Создаем путь к родительской директории
+	parentDir := filepath.Join(currentDir, "../../../")
+
+	return parentDir
 }
-
-// func GetProjectRoot() (string, error) {
-// 	currentDir, err := os.Getwd()
-// 	if err != nil {
-// 		return "", err
-// 	}
-
-// 	for {
-// 		if _, err := os.Stat(filepath.Join(currentDir, "go.mod")); err == nil {
-// 			return currentDir, nil
-// 		}
-// 		parentDir := filepath.Dir(currentDir)
-// 		if parentDir == currentDir {
-// 			break
-// 		}
-// 		currentDir = parentDir
-// 	}
-
-// 	return "", fmt.Errorf("project root not found")
-// }
