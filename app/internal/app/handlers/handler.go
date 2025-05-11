@@ -13,6 +13,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi"
+	"gorm.io/gorm/utils"
 )
 
 type Handler struct {
@@ -28,6 +29,36 @@ func Init(config *config.Config) *Handler {
 }
 
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer r.Body.Close()
+
+	var requestDto dto.UsersRequestDto
+	if err := utils.DecodeJson(body, &requestDto); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if requestDto.Email != " " {
+		http.Error(w, "Field Email not found", http.StatusBadRequest)
+		return
+	}
+
+	if requestDto.Email != " " {
+		http.Error(w, "field Email not found", http.StatusBadRequest)
+		return
+	}
+
+	isValidEmail := utils.IsValidEmail(requestDto.Email)
+
+	if !isValidEmail {
+		http.Error(w, "Email invalid", http.StatusBadRequest)
+		return
+	}
+
 	h.service.Login()
 }
 
@@ -59,16 +90,16 @@ func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		http.Error(w, "Invalid ID parameters", http.StatusBadRequest)
+		http.Error(w, "Invalid ID parameter", http.StatusBadRequest)
 		return
 	}
 
 	user, err := h.service.GetUserById(r.Context(), &id)
 
 	if err != nil {
-		fmt.Println("ошибка получения пользователя")
+		http.Error(w, "User not found", http.StatusBadRequest)
 		return
 	}
 
-	fmt.Println(user)
+	utils.ResponseJson(user, w)
 }

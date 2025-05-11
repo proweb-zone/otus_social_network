@@ -6,8 +6,10 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 )
 
 func GetProjectPath() string {
@@ -74,6 +76,22 @@ func CheckPassword(hashedPassword, password string) (bool, error) {
 	return fmt.Sprintf("%x", calculatedHash) == fmt.Sprintf("%x", hash), nil
 }
 
-// func ValidatorField() {
+func ResponseJson(response interface{}, w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
+	jsonData, err := json.Marshal(response)
 
-// }
+	if err != nil {
+		http.Error(w, "Ошибка при кодировании JSON", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = w.Write(jsonData)
+	if err != nil {
+		http.Error(w, "Ошибка при отправке ответа", http.StatusInternalServerError)
+	}
+}
+
+func IsValidEmail(email string) bool {
+	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	return emailRegex.MatchString(email)
+}
