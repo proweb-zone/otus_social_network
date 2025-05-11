@@ -4,71 +4,48 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
-	"os"
 
 	"otus_social_network/internal/config"
-	"otus_social_network/internal/db/postgres"
 	"otus_social_network/internal/migrator"
-	"otus_social_network/pkg/logger"
+	"otus_social_network/internal/utils"
 )
 
 func main() {
-	const op = "app.InitMigrate"
 
-	currentDir, _ := os.Getwd()
-
-	var configPath string
-	flag.StringVar(&configPath, "config", config.PathDefault(currentDir, nil), "path to config file")
+	currentDir := utils.GetProjectPath()
+	configPath := config.PathDefault(currentDir, nil)
+	config := config.MustInit(configPath)
 
 	var action string
 	flag.StringVar(&action, "action", "up", "path to config file")
 	flag.Parse()
 
-	var сfgEnv *config.Config = config.MustInit(configPath)
-
-	postgresIns, err := postgres.Create(buildDbConnectUrl(сfgEnv))
-	err = postgres.Connect(postgresIns)
-
-	zerologLogger := logger.ConfigureLogger(сfgEnv.Env)
-	logger := logger.NewLogger(zerologLogger)
-
+	//sqlDb := postgres.Connect(config.Db.StrConn)
+	sqlDb, err := sql.Open("postgres", config.Db.StrConn)
 	if err != nil {
-		logger.Error(err, op, nil)
-		return
+		panic(err)
 	}
+	defer sqlDb.Close()
 
-	sqlDb, err := postgresIns.DB()
-	migrator := migrator.MustGetNewMigrator(сfgEnv.Name)
-	switchAndExecMigrateAction(action, migrator, sqlDb, logger)
+	migrator := migrator.MustGetNewMigrator(config.Db.Name)
+	switchAndExecMigrateAction(action, migrator, sqlDb)
 }
 
-func buildDbConnectUrl(сfgEnv *config.Config) string {
-	return fmt.Sprintf("%s://%s:%s@%s:%s/%s?%s",
-		сfgEnv.Driver,
-		сfgEnv.User,
-		сfgEnv.Password,
-		сfgEnv.Host,
-		сfgEnv.Port,
-		сfgEnv.Name,
-		сfgEnv.Option,
-	)
-}
-
-func switchAndExecMigrateAction(action string, migrator *migrator.Migrator, conn *sql.DB, logger *logger.Logger) {
+func switchAndExecMigrateAction(action string, migrator *migrator.Migrator, conn *sql.DB) {
 	switch action {
 	case "up":
 		if err := migrator.Up(conn); err != nil {
-			logger.Fatal(err, "error migration:", nil)
+			fmt.Println("Up migration failed")
 		} else {
-			logger.Info("migration success.", nil)
+			fmt.Println("Up migration success.")
 		}
 	case "down":
 		if err := migrator.Down(conn); err != nil {
-			logger.Fatal(err, "error rollback migration:", nil)
+			fmt.Println("Down migration failed")
 		} else {
-			logger.Info("migration success.", nil)
+			fmt.Println("Down migration success.")
 		}
 	default:
-		logger.Warn("indefinite action on migration:"+action+". Available 'up' or 'down'.", nil, nil)
+		//logger.Warn("indefinite action on migration:"+action+". Available 'up' or 'down'.", nil, nil)
 	}
 }
