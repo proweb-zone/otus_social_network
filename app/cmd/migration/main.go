@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"otus_social_network/internal/config"
+	"otus_social_network/internal/db/postgres"
 	"otus_social_network/internal/migrator"
 	"otus_social_network/internal/utils"
 )
@@ -20,12 +21,8 @@ func main() {
 	flag.StringVar(&action, "action", "up", "path to config file")
 	flag.Parse()
 
-	//sqlDb := postgres.Connect(config.Db.StrConn)
-	sqlDb, err := sql.Open("postgres", config.Db.StrConn)
-	if err != nil {
-		panic(err)
-	}
-	defer sqlDb.Close()
+	sqlDb := postgres.Connect(config.Db.StrConn)
+	defer postgres.Close(sqlDb)
 
 	migrator := migrator.MustGetNewMigrator(config.Db.Name)
 	switchAndExecMigrateAction(action, migrator, sqlDb)
