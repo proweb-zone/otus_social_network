@@ -1,7 +1,6 @@
 package config
 
 import (
-	"flag"
 	"log"
 	"os"
 	"path/filepath"
@@ -82,9 +81,5 @@ func MustGetEnvAsInt(name string) int {
 }
 
 func ParseConfigPathFromCl(currentDir string) string {
-	var configPath string
-	flag.StringVar(&configPath, "config", PathDefault(currentDir, nil), "path to config file")
-	flag.Parse()
-
-	return configPath
+	return PathDefault(currentDir, nil)
 }
