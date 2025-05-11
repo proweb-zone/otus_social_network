@@ -5,10 +5,10 @@ import (
 	"flag"
 	"fmt"
 
-	"otus_social_network/internal/config"
-	"otus_social_network/internal/db/postgres"
-	"otus_social_network/internal/migrator"
-	"otus_social_network/internal/utils"
+	"otus_social_network/app/internal/config"
+	"otus_social_network/app/internal/db/postgres"
+	"otus_social_network/app/internal/migrator"
+	"otus_social_network/app/internal/utils"
 )
 
 func main() {
