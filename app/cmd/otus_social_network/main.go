@@ -1,9 +1,9 @@
 package main
 
 import (
-	"otus_social_network/internal/app"
-	"otus_social_network/internal/config"
-	"otus_social_network/internal/utils"
+	"otus_social_network/app/internal/app"
+	"otus_social_network/app/internal/config"
+	"otus_social_network/app/internal/utils"
 )
 
 func main() {

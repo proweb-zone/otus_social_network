@@ -2,8 +2,8 @@ package server
 
 import (
 	"net/http"
-	"otus_social_network/internal/app/handlers"
-	"otus_social_network/internal/config"
+	"otus_social_network/app/internal/app/handlers"
+	"otus_social_network/app/internal/config"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"

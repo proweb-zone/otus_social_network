@@ -2,7 +2,7 @@ package service
 
 import (
 	"fmt"
-	"otus_social_network/internal/app/repository"
+	"otus_social_network/app/internal/app/repository"
 )
 
 type UserService struct {

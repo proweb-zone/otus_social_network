@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"net/http"
-	"otus_social_network/internal/app/repository"
-	"otus_social_network/internal/app/service"
-	"otus_social_network/internal/config"
-	"otus_social_network/internal/db/postgres"
+	"otus_social_network/app/internal/app/repository"
+	"otus_social_network/app/internal/app/service"
+	"otus_social_network/app/internal/config"
+	"otus_social_network/app/internal/db/postgres"
 )
 
 type Handler struct {
