@@ -11,9 +11,9 @@ import (
 	"otus_social_network/app/internal/db/postgres"
 	"otus_social_network/app/internal/utils"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi"
-	"gorm.io/gorm/utils"
 )
 
 type Handler struct {
@@ -36,18 +36,20 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	var requestDto dto.UsersRequestDto
+	var requestDto dto.AuthRequestDto
 	if err := utils.DecodeJson(body, &requestDto); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	if requestDto.Email != " " {
-		http.Error(w, "Field Email not found", http.StatusBadRequest)
+	requestDto.Password = strings.TrimSpace(requestDto.Password)
+	if len(requestDto.Password) == 0 {
+		http.Error(w, "Field Password not found", http.StatusBadRequest)
 		return
 	}
 
-	if requestDto.Email != " " {
+	requestDto.Email = strings.TrimSpace(requestDto.Email)
+	if len(requestDto.Email) == 0 {
 		http.Error(w, "field Email not found", http.StatusBadRequest)
 		return
 	}
@@ -55,11 +57,21 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	isValidEmail := utils.IsValidEmail(requestDto.Email)
 
 	if !isValidEmail {
-		http.Error(w, "Email invalid", http.StatusBadRequest)
+		http.Error(w, "field Email invalid", http.StatusBadRequest)
 		return
 	}
 
-	h.service.Login()
+	auth, err := h.service.Login(r.Context(), &requestDto)
+	if err != nil {
+		http.Error(w, "Error: invalid login or password", http.StatusBadRequest)
+		return
+	}
+
+	authResponse := dto.AuthResponseDto{
+		Token: auth.Token,
+	}
+
+	utils.ResponseJson(authResponse, w)
 }
 
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {

@@ -6,6 +6,7 @@ import (
 	"otus_social_network/app/internal/app/dto"
 	"otus_social_network/app/internal/app/entity"
 	"otus_social_network/app/internal/app/repository"
+	"otus_social_network/app/internal/utils"
 )
 
 type UserService struct {
@@ -16,15 +17,38 @@ func InitUserService(repo *repository.UserRepository) *UserService {
 	return &UserService{repo: repo}
 }
 
-func (u *UserService) Login() {
-	fmt.Println("call service Login")
+func (u *UserService) Login(ctx context.Context, requestDto *dto.AuthRequestDto) (*entity.Auth, error) {
+
+	user, err := u.repo.GetUserByEmail(
+		ctx,
+		&requestDto.Email,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	isValidPass, err := utils.CheckPassword(user.Password, requestDto.Password)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !isValidPass {
+		return nil, fmt.Errorf("password invalid")
+	}
+
+	token := "dfdf"
+
+	return u.repo.CreateToken(
+		ctx,
+		user,
+		&token,
+	)
+
 }
 
 func (u *UserService) Register(ctx context.Context, request *dto.UsersRequestDto) (int, error) {
-	// err := request.Validate()
-	// if err != nil {
-	// 	return 0, err
-	// }
 	return u.repo.Create(
 		ctx,
 		&entity.Users{
