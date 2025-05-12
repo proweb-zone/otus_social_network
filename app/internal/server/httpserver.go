@@ -16,7 +16,7 @@ func StartServer(config *config.Config) {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Post("/login", handlers.Login)
-	r.Put("/user/register", handlers.Register)
+	r.Post("/user/register", handlers.Register)
 	r.Get("/user/get/{id}", handlers.GetUser)
 	http.ListenAndServe(config.HTTPServer.ServerPort, r)
 }
