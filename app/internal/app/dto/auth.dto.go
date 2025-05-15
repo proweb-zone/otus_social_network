@@ -6,5 +6,5 @@ type AuthRequestDto struct {
 }
 
 type AuthResponseDto struct {
-	Token string `json:"token" validate:"required,string"`
+	Bearer_token string `json:"token" validate:"required,string"`
 }
