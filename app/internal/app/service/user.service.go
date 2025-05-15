@@ -17,7 +17,7 @@ func InitUserService(repo *repository.UserRepository) *UserService {
 	return &UserService{repo: repo}
 }
 
-func (u *UserService) Login(ctx context.Context, requestDto *dto.AuthRequestDto) (*entity.Auth, error) {
+func (u *UserService) Login(ctx context.Context, requestDto *dto.AuthRequestDto) (*dto.AuthResponseDto, error) {
 
 	user, err := u.repo.GetUserByEmail(
 		ctx,
@@ -38,18 +38,42 @@ func (u *UserService) Login(ctx context.Context, requestDto *dto.AuthRequestDto)
 		return nil, fmt.Errorf("password invalid")
 	}
 
-	token := utils.GenerateToken(32)
+	var authResponse dto.AuthResponseDto
 
-	return u.repo.CreateToken(
-		ctx,
-		user,
-		&token,
-	)
+	tokenByUserId, _ := u.repo.GetTokenByUserId(&ctx, &user.ID)
+
+	if tokenByUserId != nil && len(tokenByUserId.Token) > 0 {
+		authResponse.Bearer_token = tokenByUserId.Token
+		return &authResponse, nil
+	} else {
+
+		token := utils.GenerateToken(32)
+
+		auth, err := u.repo.CreateToken(
+			ctx,
+			user,
+			&token,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		authResponse.Bearer_token = auth.Token
+
+		return &authResponse, nil
+	}
 
 }
 
-func (u *UserService) Register(ctx context.Context, request *dto.UsersRequestDto) (int, error) {
-	return u.repo.Create(
+func (u *UserService) Register(ctx context.Context, request *dto.UsersRequestDto) (*dto.UsersResponseDto, error) {
+	isvalidUser, _ := u.repo.GetUserByEmail(ctx, &request.Email)
+
+	if isvalidUser != nil {
+		return nil, fmt.Errorf("Error: User with this email has already been registered")
+	}
+
+	_, err := u.repo.Create(
 		ctx,
 		&entity.Users{
 			First_name: request.First_name,
@@ -62,6 +86,22 @@ func (u *UserService) Register(ctx context.Context, request *dto.UsersRequestDto
 			City:       request.City,
 		},
 	)
+
+	if err != nil {
+		return nil, fmt.Errorf("Error: Create user")
+	}
+
+	userByEmail, err := u.repo.GetUserByEmail(ctx, &request.Email)
+	if err != nil {
+		return nil, fmt.Errorf("Error: Create user")
+	}
+
+	var userResponse dto.UsersResponseDto
+
+	userResponse.User_id = userByEmail.ID
+
+	return &userResponse, nil
+
 }
 
 func (u *UserService) GetUserById(ctx context.Context, id *int) (*entity.Users, error) {

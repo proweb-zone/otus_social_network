@@ -11,6 +11,10 @@ type UsersRequestDto struct {
 	City       string `json:"city" validate:"omitempty,string"`
 }
 
+type UsersResponseDto struct {
+	User_id uint `json:"user_id"`
+}
+
 func (d *UsersRequestDto) Validate() error {
 	tagMsg := map[string]string{
 		"required": "обязательно для заполнения",

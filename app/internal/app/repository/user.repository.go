@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"otus_social_network/app/internal/app/dto"
 	"otus_social_network/app/internal/app/entity"
 )
 
@@ -15,24 +16,17 @@ func InitPostgresRepository(db *sql.DB) *UserRepository {
 	return &UserRepository{db}
 }
 
-func (r *UserRepository) Login() {
+func (r *UserRepository) Create(ctx context.Context, user *entity.Users) (*dto.UsersResponseDto, error) {
+	var userResponse dto.UsersResponseDto
 
-}
-
-func (r *UserRepository) Create(ctx context.Context, user *entity.Users) (int, error) {
 	stmt := `INSERT INTO users (first_name, last_name, email, password, birth_date, gender, hobby, city) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 
-	result, err := r.db.Exec(stmt, user.First_name, user.Last_name, user.Email, user.Password, user.Birth_date, user.Gender, user.Hobby, user.City)
+	_, err := r.db.Exec(stmt, user.First_name, user.Last_name, user.Email, user.Password, user.Birth_date, user.Gender, user.Hobby, user.City)
 	if err != nil {
-		return 0, err
+		return &userResponse, err
 	}
 
-	id, err := result.LastInsertId()
-	if err != nil {
-		return 0, err
-	}
-
-	return int(id), nil
+	return &userResponse, nil
 }
 
 func (r *UserRepository) GetUserById(ctx context.Context, id *int) (*entity.Users, error) {
@@ -76,6 +70,19 @@ func (r *UserRepository) CreateToken(ctx context.Context, user *entity.Users, to
 	errToken := row.Scan(&auth.Token)
 	if errToken != nil {
 		return nil, fmt.Errorf("Error get token in DB")
+	}
+
+	return &auth, nil
+}
+
+func (r *UserRepository) GetTokenByUserId(ctx *context.Context, userId *uint) (*entity.Auth, error) {
+	row := r.db.QueryRow("SELECT id, user_id, token, created_at FROM auth WHERE user_id = $1", userId)
+
+	var auth entity.Auth
+	err := row.Scan(&auth.ID, &auth.User_id, &auth.Token, &auth.CreatedAt)
+
+	if err != nil {
+		return nil, err
 	}
 
 	return &auth, nil

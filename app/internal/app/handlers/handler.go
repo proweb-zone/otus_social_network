@@ -44,31 +44,27 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 
 	requestDto.Password = strings.TrimSpace(requestDto.Password)
 	if len(requestDto.Password) == 0 {
-		http.Error(w, "Field Password not found", http.StatusBadRequest)
+		http.Error(w, "Error: field Password not found", http.StatusBadRequest)
 		return
 	}
 
 	requestDto.Email = strings.TrimSpace(requestDto.Email)
 	if len(requestDto.Email) == 0 {
-		http.Error(w, "field Email not found", http.StatusBadRequest)
+		http.Error(w, "Error: field Email not found", http.StatusBadRequest)
 		return
 	}
 
 	isValidEmail := utils.IsValidEmail(requestDto.Email)
 
 	if !isValidEmail {
-		http.Error(w, "field Email invalid", http.StatusBadRequest)
+		http.Error(w, "Error: field Email invalid", http.StatusBadRequest)
 		return
 	}
 
-	auth, err := h.service.Login(r.Context(), &requestDto)
+	authResponse, err := h.service.Login(r.Context(), &requestDto)
 	if err != nil {
-		http.Error(w, "Error: invalid login or password", http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
-	}
-
-	authResponse := dto.AuthResponseDto{
-		Token: auth.Token,
 	}
 
 	utils.ResponseJson(authResponse, w)
@@ -88,28 +84,53 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	requestDto.Password = strings.TrimSpace(requestDto.Password)
+	if len(requestDto.Password) == 0 {
+		http.Error(w, "Error: field password not found", http.StatusBadRequest)
+		return
+	}
+
+	requestDto.Email = strings.TrimSpace(requestDto.Email)
+	if len(requestDto.Email) == 0 {
+		http.Error(w, "Error: field Email not found", http.StatusBadRequest)
+		return
+	}
+
+	requestDto.First_name = strings.TrimSpace(requestDto.First_name)
+	if len(requestDto.First_name) == 0 {
+		http.Error(w, "Error: field First_name not found", http.StatusBadRequest)
+		return
+	}
+
 	hashPass, err := utils.HashPassword(requestDto.Password)
 	if err != nil {
-		fmt.Errorf("Error hash password", err)
+		fmt.Errorf("Error: hash password", err)
+		return
 	}
 
 	requestDto.Password = hashPass
 
-	h.service.Register(r.Context(), &requestDto)
+	userResponse, err := h.service.Register(r.Context(), &requestDto)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	utils.ResponseJson(userResponse, w)
 }
 
 func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		http.Error(w, "Invalid ID parameter", http.StatusBadRequest)
+		http.Error(w, "Error: invalid ID parameter", http.StatusBadRequest)
 		return
 	}
 
 	user, err := h.service.GetUserById(r.Context(), &id)
 
 	if err != nil {
-		http.Error(w, "User not found", http.StatusBadRequest)
+		http.Error(w, "Error: user not found", http.StatusBadRequest)
 		return
 	}
 
