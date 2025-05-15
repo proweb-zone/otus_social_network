@@ -6,9 +6,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"net/http"
 	"os"
-	"path/filepath"
 	"regexp"
 )
 
@@ -22,9 +22,9 @@ func GetProjectPath() string {
 	currentDir, _ := os.Getwd()
 
 	// Создаем путь к родительской директории
-	parentDir := filepath.Join(currentDir, "../../../")
+	// parentDir := filepath.Join(currentDir, "../../../")
 
-	return parentDir
+	return currentDir
 }
 
 func DecodeJson(body []byte, result any) error {
@@ -94,4 +94,17 @@ func ResponseJson(response interface{}, w http.ResponseWriter) {
 func IsValidEmail(email string) bool {
 	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 	return emailRegex.MatchString(email)
+}
+
+func GenerateToken(length int) string {
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	token := make([]byte, length)
+	for i := 0; i < length; i++ {
+		randomIndex, err := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
+		if err != nil {
+			panic(err) // Обработка ошибки
+		}
+		token[i] = charset[randomIndex.Int64()]
+	}
+	return string(token)
 }

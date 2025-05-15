@@ -21,7 +21,7 @@ type Handler struct {
 }
 
 func Init(config *config.Config) *Handler {
-	db := postgres.Connect(config.Db.StrConn)
+	db := postgres.Connect(config)
 	userRepository := repository.InitPostgresRepository(db)
 	service := service.InitUserService(userRepository)
 
