@@ -38,7 +38,7 @@ func (u *UserService) Login(ctx context.Context, requestDto *dto.AuthRequestDto)
 		return nil, fmt.Errorf("password invalid")
 	}
 
-	token := "dfdf"
+	token := utils.GenerateToken(32)
 
 	return u.repo.CreateToken(
 		ctx,

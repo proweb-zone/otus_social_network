@@ -13,7 +13,7 @@ services:
 
   postgres:
     image: postgres:16.1-alpine3.18
-    container_name: postgres-soc-network
+    container_name: postgres_socnet
     environment:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER}
@@ -23,5 +23,29 @@ services:
       - ${DB_PORT}:5432
     volumes:
       - ./db_data:/var/lib/postgresql/data
-    restart: always
+    networks:
+      otus-network:
+        ipv4_address: "172.33.0.3"
     env_file: ".env"
+
+  app:
+    container_name: app_socnet
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"
+    networks:
+      otus-network:
+        ipv4_address: "172.33.0.2"
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+
+networks:
+  otus-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.33.0.0/24

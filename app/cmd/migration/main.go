@@ -21,7 +21,7 @@ func main() {
 	flag.StringVar(&action, "action", "up", "path to config file")
 	flag.Parse()
 
-	sqlDb := postgres.Connect(config.Db.StrConn)
+	sqlDb := postgres.Connect(config)
 	defer postgres.Close(sqlDb)
 
 	migrator := migrator.MustGetNewMigrator(config.Db.Name)
@@ -32,17 +32,17 @@ func switchAndExecMigrateAction(action string, migrator *migrator.Migrator, conn
 	switch action {
 	case "up":
 		if err := migrator.Up(conn); err != nil {
-			fmt.Println("Up migration failed")
+			fmt.Println("Up migration failed", err)
 		} else {
 			fmt.Println("Up migration success.")
 		}
 	case "down":
 		if err := migrator.Down(conn); err != nil {
-			fmt.Println("Down migration failed")
+			fmt.Println("Down migration failed", err)
 		} else {
 			fmt.Println("Down migration success.")
 		}
 	default:
-		//logger.Warn("indefinite action on migration:"+action+". Available 'up' or 'down'.", nil, nil)
+		fmt.Println("parameter -action up or down not found")
 	}
 }

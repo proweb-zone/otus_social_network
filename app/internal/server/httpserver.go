@@ -18,5 +18,5 @@ func StartServer(config *config.Config) {
 	r.Post("/login", handlers.Login)
 	r.Post("/user/register", handlers.Register)
 	r.Get("/user/get/{id}", handlers.GetUser)
-	http.ListenAndServe(config.HTTPServer.ServerPort, r)
+	http.ListenAndServe(":"+config.HTTPServer.ServerPort, r)
 }
