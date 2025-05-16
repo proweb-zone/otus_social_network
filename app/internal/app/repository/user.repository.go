@@ -87,3 +87,16 @@ func (r *UserRepository) GetTokenByUserId(ctx *context.Context, userId *uint) (*
 
 	return &auth, nil
 }
+
+func (r *UserRepository) CheckToken(token string) (*entity.Auth, error) {
+	row := r.db.QueryRow("SELECT id, user_id, token, created_at FROM auth WHERE token = $1", token)
+
+	var auth entity.Auth
+	err := row.Scan(&auth.ID, &auth.User_id, &auth.Token, &auth.CreatedAt)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &auth, nil
+}

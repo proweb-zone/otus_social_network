@@ -1,0 +1,43 @@
+package middleware
+
+import (
+	"net/http"
+	"otus_social_network/app/internal/app/repository"
+	"otus_social_network/app/internal/config"
+	"otus_social_network/app/internal/db/postgres"
+	"strings"
+)
+
+func CheckAccess(config *config.Config) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+			// Извлечение токена из заголовка Authorization
+			authHeader := r.Header.Get("Authorization")
+			if authHeader == "" {
+				http.Error(w, "Authorization header missing", http.StatusUnauthorized)
+				return
+			}
+
+			bearerToken := strings.Split(authHeader, " ")
+			if len(bearerToken) != 2 || bearerToken[0] != "Bearer" {
+				http.Error(w, "Invalid authorization header format", http.StatusUnauthorized)
+				return
+			}
+
+			token := bearerToken[1]
+
+			db := postgres.Connect(config)
+			userRepository := repository.InitPostgresRepository(db)
+			auth, _ := userRepository.CheckToken(token)
+
+			if auth != nil && len(auth.Token) > 0 {
+				next.ServeHTTP(w, r)
+			} else {
+				http.Error(w, "Error: check Token Bearer", http.StatusUnauthorized)
+				return
+			}
+
+		})
+	}
+}
