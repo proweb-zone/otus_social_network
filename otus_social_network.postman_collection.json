@@ -45,7 +45,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"email\": \"14020842@gmail.com\",\n    \"password\": \"123123Vc\"\n}",
+					"raw": "{\n    \"email\": \"14022@gmail.com\",\n    \"password\": \"123123Vc\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -53,16 +53,14 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3002/user/get/14",
+					"raw": "http://localhost:3002/login",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
 					"port": "3002",
 					"path": [
-						"user",
-						"get",
-						"14"
+						"login"
 					]
 				}
 			},
@@ -76,7 +74,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "d0fLP9KFqolc4ADgeLLQXKeTzQZ4vMkX",
+							"value": "q0uRUlYHJyzJCWNL3xyzWXEzKC5JzyqC",
 							"type": "string"
 						}
 					]
@@ -84,7 +82,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3002/user/get/1",
+					"raw": "http://localhost:3002/user/get/15",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -93,7 +91,7 @@
 					"path": [
 						"user",
 						"get",
-						"1"
+						"15"
 					]
 				}
 			},
