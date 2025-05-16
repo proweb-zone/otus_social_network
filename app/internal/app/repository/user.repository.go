@@ -33,7 +33,7 @@ func (r *UserRepository) GetUserById(ctx context.Context, id *int) (*entity.User
 	row := r.db.QueryRow("SELECT id, first_name, last_name, email, birth_date, gender, hobby, city FROM users WHERE id = $1", id)
 
 	var user entity.Users
-	err := row.Scan(&user.First_name, &user.Last_name, &user.Email, &user.Password, &user.Birth_date, &user.Gender, &user.Hobby, &user.City)
+	err := row.Scan(&user.ID, &user.First_name, &user.Last_name, &user.Email, &user.Birth_date, &user.Gender, &user.Hobby, &user.City)
 
 	if err != nil {
 		return nil, err
