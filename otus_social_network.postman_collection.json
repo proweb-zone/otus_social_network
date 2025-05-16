@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "a0c0e753-389d-449b-a7b1-9ac25c5a4780",
+		"_postman_id": "fb6e2b3e-68cb-4320-901a-e20a5dd8e874",
 		"name": "otus_social_network",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "41185212"
@@ -13,7 +13,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"email\": \"1402@gmail.com\",\n    \"password\": \"123123Vc\",\n    \"first_name\": \"Семен\",\n    \"last_name\": \"Проскуряков\",\n    \"birth_date\": \"sdfdsf\",\n    \"gender\": \"man\",\n    \"hobby\": \"travel\",\n    \"city\": \"moscow\"\n}",
+					"raw": "{\n    \"email\": \"1402@gmail.com\",\n    \"password\": \"123123Vc\",\n    \"first_name\": \"Семен\",\n    \"last_name\": \"Иванов\",\n    \"birth_date\": \"1992-03-12\",\n    \"gender\": \"man\",\n    \"hobby\": \"travel, tennis\",\n    \"city\": \"Moscow\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -45,7 +45,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"email\": \"14022@gmail.com\",\n    \"password\": \"123123Vc\"\n}",
+					"raw": "{\n    \"email\": \"1402@gmail.com\",\n    \"password\": \"123123Vc\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -74,7 +74,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "q0uRUlYHJyzJCWNL3xyzWXEzKC5JzyqC",
+							"value": "smy0a4jbtwoY86Dj35NmgYS5daPBlWf6",
 							"type": "string"
 						}
 					]
@@ -82,7 +82,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3002/user/get/15",
+					"raw": "http://localhost:3002/user/get/1",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -91,7 +91,7 @@
 					"path": [
 						"user",
 						"get",
-						"15"
+						"1"
 					]
 				}
 			},
