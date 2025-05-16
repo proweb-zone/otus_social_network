@@ -4,7 +4,7 @@ CREATE TABLE users (
     last_name VARCHAR(64),
     email VARCHAR(64),
     password VARCHAR(255),
-    birth_date VARCHAR(64),
+    birth_date date,
     gender VARCHAR(12),
     hobby VARCHAR(255),
     city VARCHAR(64),

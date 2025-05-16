@@ -7,6 +7,8 @@ import (
 	"otus_social_network/app/internal/app/entity"
 	"otus_social_network/app/internal/app/repository"
 	"otus_social_network/app/internal/utils"
+	"strings"
+	"time"
 )
 
 type UserService struct {
@@ -73,6 +75,15 @@ func (u *UserService) Register(ctx context.Context, request *dto.UsersRequestDto
 		return nil, fmt.Errorf("Error: User with this email has already been registered")
 	}
 
+	var birthTime time.Time
+	if len(request.Birth_date) > 0 {
+		parsedTime, err := time.Parse("2006-01-02", strings.TrimSpace(request.Birth_date))
+		if err != nil {
+			return nil, fmt.Errorf("Error: Incorect date in field birth_date")
+		}
+		birthTime = parsedTime
+	}
+
 	_, err := u.repo.Create(
 		ctx,
 		&entity.Users{
@@ -80,7 +91,7 @@ func (u *UserService) Register(ctx context.Context, request *dto.UsersRequestDto
 			Last_name:  request.Last_name,
 			Email:      request.Email,
 			Password:   request.Password,
-			Birth_date: request.Birth_date,
+			Birth_date: birthTime,
 			Gender:     request.Gender,
 			Hobby:      request.Hobby,
 			City:       request.City,
