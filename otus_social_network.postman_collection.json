@@ -1,0 +1,103 @@
+{
+	"info": {
+		"_postman_id": "a0c0e753-389d-449b-a7b1-9ac25c5a4780",
+		"name": "otus_social_network",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "41185212"
+	},
+	"item": [
+		{
+			"name": "Регистрация пользователя",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"1402@gmail.com\",\n    \"password\": \"123123Vc\",\n    \"first_name\": \"Семен\",\n    \"last_name\": \"Проскуряков\",\n    \"birth_date\": \"sdfdsf\",\n    \"gender\": \"man\",\n    \"hobby\": \"travel\",\n    \"city\": \"moscow\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3002/user/register",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3002",
+					"path": [
+						"user",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Авторизация пользователя",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"14020842@gmail.com\",\n    \"password\": \"123123Vc\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3002/user/get/14",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3002",
+					"path": [
+						"user",
+						"get",
+						"14"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Получение анкеты",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "d0fLP9KFqolc4ADgeLLQXKeTzQZ4vMkX",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3002/user/get/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3002",
+					"path": [
+						"user",
+						"get",
+						"1"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
