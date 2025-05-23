@@ -149,6 +149,9 @@ func (r *UserRepository) BatchInsertUsers(users []*entity.Users) error {
 
 func (r *UserRepository) SearchUsers(ctx context.Context, firstName string, lastName string) ([]*entity.Users, error) {
 
+	firstName = strings.ToLower(firstName)
+	lastName = strings.ToLower(lastName)
+
 	stmt, err := r.db.Prepare("SELECT id, first_name, last_name FROM users WHERE first_name LIKE $1 AND last_name LIKE $2 ORDER BY id")
 	if err != nil {
 		return nil, fmt.Errorf("prepare statement: %w", err)
