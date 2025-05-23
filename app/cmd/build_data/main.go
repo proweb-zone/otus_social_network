@@ -36,7 +36,7 @@ func main() {
 	userRepository := repository.InitPostgresRepository(sqlDb)
 
 	numerator := 999931
-	batch := 2000
+	batch := 999931
 
 	// остаток от деления batch
 	remainder := math.Mod(float64(numerator), float64(batch))
@@ -71,7 +71,7 @@ func main() {
 		users = append(users, person)
 
 		if index == batch && batchNumber <= countBatch {
-			fmt.Println("Writing batch", batchNumber, index)
+			fmt.Println("Writing batch", batchNumber, len(users))
 			userRepository.BatchInsertUsers(users)
 			users = make([]*entity.Users, 0)
 			// time.Sleep(5 * time.Second)
