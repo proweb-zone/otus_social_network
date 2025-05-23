@@ -7,8 +7,7 @@ import (
 	"log"
 	"otus_social_network/app/internal/app/dto"
 	"otus_social_network/app/internal/app/entity"
-	"sync"
-	"time"
+	"strings"
 )
 
 type UserRepository struct {
@@ -21,6 +20,9 @@ func InitPostgresRepository(db *sql.DB) *UserRepository {
 
 func (r *UserRepository) Create(ctx context.Context, user *entity.Users) (*dto.UsersResponseDto, error) {
 	var userResponse dto.UsersResponseDto
+
+	user.First_name = strings.ToLower(user.First_name)
+	user.Last_name = strings.ToLower(user.Last_name)
 
 	stmt := `INSERT INTO users (first_name, last_name, email, password, birth_date, gender, hobby, city) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 
@@ -106,8 +108,9 @@ func (r *UserRepository) CheckToken(token string) (*entity.Auth, error) {
 
 func (r *UserRepository) BatchInsertUsers(users []*entity.Users) error {
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+	//ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx := context.Background()
+	//defer cancel()
 
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -120,34 +123,19 @@ func (r *UserRepository) BatchInsertUsers(users []*entity.Users) error {
 	stmt, err := r.db.PrepareContext(ctx, insertQuery)
 	if err != nil {
 		tx.Rollback()
-		fmt.Println("ошибка при вставке пользователя: %w", err)
 		return err
 	}
 	defer stmt.Close()
 
-	var wg sync.WaitGroup
-	errChan := make(chan error, len(users)) // Channel for errors
-
-	// g, ctx := errgroup.WithContext(ctx)
 	for _, user := range users {
-		// user := user
-		wg.Add(1)
-		go func(user *entity.Users) {
-			defer wg.Done()
-			_, err := stmt.ExecContext(ctx, user.First_name, user.Last_name, user.Email, user.Password, user.Birth_date, user.Gender, user.Hobby, user.City)
-			if err != nil {
-				errChan <- fmt.Errorf("error inserting user: %w", err)
-			}
-		}(user)
-	}
 
-	go func() {
-		wg.Wait()
-		close(errChan)
-	}()
+		user.First_name = strings.ToLower(user.First_name)
+		user.Last_name = strings.ToLower(user.Last_name)
 
-	for err := range errChan {
-		return err // Return the first error encountered
+		_, err := stmt.ExecContext(ctx, user.First_name, user.Last_name, user.Email, user.Password, user.Birth_date, user.Gender, user.Hobby, user.City)
+		if err != nil {
+			fmt.Errorf("Error ExecContext ", err)
+		}
 	}
 
 	err = tx.Commit()
@@ -163,14 +151,10 @@ func (r *UserRepository) SearchUsers(ctx context.Context, firstName string, last
 
 	stmt, err := r.db.Prepare("SELECT id, first_name, last_name FROM users WHERE first_name LIKE $1 AND last_name LIKE $2 ORDER BY id")
 	if err != nil {
-		fmt.Println(err)
 		return nil, fmt.Errorf("prepare statement: %w", err)
 	}
 	defer stmt.Close()
 
-	fmt.Println("%"+firstName+"%", "%"+lastName+"%")
-
-	// Используем placeholders для параметров
 	rows, err := stmt.Query("%"+firstName+"%", "%"+lastName+"%")
 	if err != nil {
 		return nil, fmt.Errorf("query: %w", err)
