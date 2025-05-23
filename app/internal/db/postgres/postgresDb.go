@@ -4,14 +4,18 @@ import (
 	"database/sql"
 	"fmt"
 	"otus_social_network/app/internal/config"
+
+	_ "github.com/lib/pq"
 )
 
 func Connect(config *config.Config) *sql.DB {
+	//fmt.Println(config)
 	connStr := buildDbConnectUrl(config)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		panic(err)
 	}
+	//defer db.Close()
 	return db
 }
 
