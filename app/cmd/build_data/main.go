@@ -102,8 +102,8 @@ func buildPersonData(record []string, index int) (*entity.Users, error) {
 	}
 
 	firstAndLastName := strings.Split(record[0], " ")
-	person.First_name = firstAndLastName[0]
-	person.Last_name = firstAndLastName[1]
+	person.First_name = firstAndLastName[1]
+	person.Last_name = firstAndLastName[0]
 	person.City = record[2]
 	person.Email = strconv.Itoa(index) + "@gmail.com"
 	person.Password = hashPass

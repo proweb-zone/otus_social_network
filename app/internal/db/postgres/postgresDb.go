@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"otus_social_network/app/internal/config"
+	"time"
 
 	_ "github.com/lib/pq"
 )
@@ -15,6 +16,9 @@ func Connect(config *config.Config) *sql.DB {
 	if err != nil {
 		panic(err)
 	}
+	db.SetMaxOpenConns(500)
+	db.SetMaxIdleConns(1000)
+	db.SetConnMaxLifetime(5 * time.Minute)
 	//defer db.Close()
 	return db
 }

@@ -119,6 +119,6 @@ func (u *UserService) GetUserById(ctx context.Context, id *int) (*entity.Users, 
 	return u.repo.GetUserById(ctx, id)
 }
 
-func (u *UserService) SearchUser(ctx context.Context, firstName string, lastName string) ([]*entity.Users, error) {
-	return u.repo.SearchUsers(ctx, firstName, lastName)
+func (u *UserService) SearchUser(firstName string, lastName string) ([]*entity.Users, error) {
+	return u.repo.SearchUsers(firstName, lastName)
 }
