@@ -108,16 +108,14 @@ func (r *UserRepository) CheckToken(token string) (*entity.Auth, error) {
 
 func (r *UserRepository) BatchInsertUsers(users []*entity.Users) error {
 
-	//ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	ctx := context.Background()
-	//defer cancel()
 
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		fmt.Errorf("Error open transaction")
 		log.Fatal(err)
 	}
-	defer tx.Rollback() // Обязательно откатываем транзакцию в случае ошибки
+	defer tx.Rollback()
 
 	const insertQuery = `INSERT INTO users (first_name, last_name, email, password, birth_date, gender, hobby, city) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 	stmt, err := r.db.PrepareContext(ctx, insertQuery)
@@ -147,7 +145,7 @@ func (r *UserRepository) BatchInsertUsers(users []*entity.Users) error {
 	return nil
 }
 
-func (r *UserRepository) SearchUsers(ctx context.Context, firstName string, lastName string) ([]*entity.Users, error) {
+func (r *UserRepository) SearchUsers(firstName string, lastName string) ([]*entity.Users, error) {
 
 	firstName = strings.ToLower(firstName)
 	lastName = strings.ToLower(lastName)

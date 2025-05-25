@@ -12,6 +12,7 @@ import (
 	"otus_social_network/app/internal/utils"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-chi/chi"
 )
@@ -138,6 +139,8 @@ func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) SearchUser(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+
 	query := chi.URLParam(r, "query")
 	prepairQuery := strings.Split(query, " ")
 
@@ -149,12 +152,15 @@ func (h *Handler) SearchUser(w http.ResponseWriter, r *http.Request) {
 	firstName := prepairQuery[0]
 	lastName := prepairQuery[1]
 
-	users, err := h.service.SearchUser(r.Context(), firstName, lastName)
+	users, err := h.service.SearchUser(firstName, lastName)
 
 	if err != nil {
 		http.Error(w, "Error: users not found", http.StatusBadRequest)
 		return
 	}
+
+	elapsed := time.Since(start)
+	fmt.Printf(" резултат выполнения за %s\n", elapsed)
 
 	utils.ResponseJson(users, w)
 }
