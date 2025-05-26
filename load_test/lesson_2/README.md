@@ -13,7 +13,8 @@
 ```
 SELECT pg_available_extension('pg_trgm');
 ```
-2) В ходе работы был добавлен составной индекс для first_name и last_name
+2) В ходе работы был добавлен составной индекс GIN для first_name и last_name.
+Такой тип индекса был добавлен потому что он позволяет реализовывать подстрочный поиск в таблице, но поскольку тип колонки first_name и last_name является varchar(N) и шаблон поиска по неточному вхождению LIKE %*%, необходимо подключать поиск по триграммам "pg_trgm"
 ```
 CREATE INDEX idx_users_first_last_name_trgm
 ON users USING gin (first_name gin_trgm_ops, last_name gin_trgm_ops);
