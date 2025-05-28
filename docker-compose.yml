@@ -10,7 +10,9 @@ services:
     ports:
       - ${DB_PORT_MASTER}:5432
     volumes:
-      - ./db_data_master:/var/lib/postgresql/data
+      - ./config/postgres/master/pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
+      - ./config/postgres/master/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
+      - ./db_data/master:/var/lib/postgresql/data
     networks:
       otus-network:
         ipv4_address: "172.33.0.3"
@@ -25,6 +27,8 @@ services:
       TZ: Europe/Moscow
     ports:
       - ${DB_PORT_SLAVE_1}:5432
+    volumes:
+      - ./db_data/slave_1:/var/lib/postgresql/data
     networks:
       otus-network:
         ipv4_address: "172.33.0.4"
@@ -39,6 +43,8 @@ services:
       TZ: Europe/Moscow
     ports:
       - ${DB_PORT_SLAVE_2}:5432
+    volumes:
+      - ./db_data/slave_2:/var/lib/postgresql/data
     networks:
       otus-network:
         ipv4_address: "172.33.0.5"
