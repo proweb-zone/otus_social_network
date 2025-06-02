@@ -6,6 +6,7 @@ services:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER_MASTER}
       POSTGRES_PASSWORD: ${DB_PASSWORD_MASTER}
+      POSTGRES_REPLICATION_SLOT: myreplication
       TZ: Europe/Moscow
     ports:
       - ${DB_PORT_MASTER}:5432
@@ -24,11 +25,15 @@ services:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER_SLAVE_1}
       POSTGRES_PASSWORD: ${DB_PASSWORD_SLAVE_1}
+      PGOPTIONS: '-c synchronous_commit=off'
+      POSTGRES_REPLICATION_SLOT: myreplication
       TZ: Europe/Moscow
     ports:
       - ${DB_PORT_SLAVE_1}:5432
     volumes:
       - ./db_data/slave_1:/var/lib/postgresql/data
+    depends_on:
+      - postgres_master
     networks:
       otus-network:
         ipv4_address: "172.33.0.4"
@@ -40,11 +45,15 @@ services:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER_SLAVE_2}
       POSTGRES_PASSWORD: ${DB_PASSWORD_SLAVE_2}
+      PGOPTIONS: '-c synchronous_commit=off'
+      POSTGRES_REPLICATION_SLOT: myreplication
       TZ: Europe/Moscow
     ports:
       - ${DB_PORT_SLAVE_2}:5432
     volumes:
       - ./db_data/slave_2:/var/lib/postgresql/data
+    depends_on:
+      - postgres_master
     networks:
       otus-network:
         ipv4_address: "172.33.0.5"
