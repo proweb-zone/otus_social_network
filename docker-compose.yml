@@ -6,52 +6,49 @@ services:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER_MASTER}
       POSTGRES_PASSWORD: ${DB_PASSWORD_MASTER}
-      POSTGRES_REPLICATION_SLOT: myreplication
       TZ: Europe/Moscow
     ports:
       - ${DB_PORT_MASTER}:5432
     volumes:
       - ./config/postgres/master/pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
       - ./config/postgres/master/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
-      - ./db_data/master:/var/lib/postgresql/data
+      - ./pg_data/master/:/var/lib/postgresql/data
     networks:
       otus-network:
         ipv4_address: "172.33.0.3"
     env_file: ".env"
-  postgres_slave_1:
+  postgres_slave_sync:
     image: postgres:16.1-alpine3.18
-    container_name: postgres_slave_1
+    container_name: postgres_slave_sync
     environment:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER_SLAVE_1}
       POSTGRES_PASSWORD: ${DB_PASSWORD_SLAVE_1}
-      PGOPTIONS: '-c synchronous_commit=off'
-      POSTGRES_REPLICATION_SLOT: myreplication
       TZ: Europe/Moscow
     ports:
       - ${DB_PORT_SLAVE_1}:5432
     volumes:
-      - ./db_data/slave_1:/var/lib/postgresql/data
+      - ./config/postgres/slave_sync/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
+      - ./pg_data/pgslave:/var/lib/postgresql/data
     depends_on:
       - postgres_master
     networks:
       otus-network:
         ipv4_address: "172.33.0.4"
     env_file: ".env"
-  postgres_slave_2:
+  postgres_slave_async:
     image: postgres:16.1-alpine3.18
-    container_name: postgres_slave_2
+    container_name: postgres_slave_async
     environment:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER_SLAVE_2}
       POSTGRES_PASSWORD: ${DB_PASSWORD_SLAVE_2}
-      PGOPTIONS: '-c synchronous_commit=off'
-      POSTGRES_REPLICATION_SLOT: myreplication
       TZ: Europe/Moscow
     ports:
       - ${DB_PORT_SLAVE_2}:5432
     volumes:
-      - ./db_data/slave_2:/var/lib/postgresql/data
+      - ./config/postgres/slave_async/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
+      - ./pg_data/pgasyncslave:/var/lib/postgresql/data
     depends_on:
       - postgres_master
     networks:
@@ -71,8 +68,8 @@ services:
         ipv4_address: "172.33.0.2"
     depends_on:
       - postgres_master
-      - postgres_slave_1
-      - postgres_slave_2
+      - postgres_slave_sync
+      - postgres_slave_async
     env_file:
       - .env
 
