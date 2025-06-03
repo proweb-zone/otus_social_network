@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -12,7 +13,7 @@ import (
 type Config struct {
 	Env        string `yaml:"env" env-default:"local"`
 	HTTPServer `yaml:"http_server"`
-	Db         `yaml:"db"`
+	UrlsDb
 }
 
 type HTTPServer struct {
@@ -29,22 +30,60 @@ type Db struct {
 	Option   string `yaml:"db_option"`
 }
 
+type UrlsDb struct {
+	DbMaster string
+	DbSlave1 string
+	DbSlave2 string
+}
+
 func MustInit(configPath string) *Config {
 	godotenv.Load(configPath)
+
+	dbMaster := &Db{
+		Driver:   MustGetEnv("DB_DRIVER_MASTER"),
+		Host:     MustGetEnv("DB_HOST_MASTER"),
+		Port:     MustGetEnv("DB_PORT_MASTER"),
+		Name:     MustGetEnv("DB_NAME_MASTER"),
+		User:     MustGetEnv("DB_USER_MASTER"),
+		Password: MustGetEnv("DB_PASSWORD_MASTER"),
+		Option:   MustGetEnv("DB_OPTION_MASTER"),
+	}
+
+	var urlDbMaster = buildDbConnectUrl(dbMaster)
+
+	dbSlave1 := &Db{
+		Driver:   MustGetEnv("DB_DRIVER_SLAVE_1"),
+		Host:     MustGetEnv("DB_HOST_SLAVE_1"),
+		Port:     MustGetEnv("DB_PORT_SLAVE_1"),
+		Name:     MustGetEnv("DB_NAME_SLAVE_1"),
+		User:     MustGetEnv("DB_USER_SLAVE_1"),
+		Password: MustGetEnv("DB_PASSWORD_SLAVE_1"),
+		Option:   MustGetEnv("DB_OPTION_SLAVE_1"),
+	}
+
+	var urlDbSlave1 = buildDbConnectUrl(dbSlave1)
+
+	dbSlave2 := &Db{
+		Driver:   MustGetEnv("DB_DRIVER_SLAVE_2"),
+		Host:     MustGetEnv("DB_HOST_SLAVE_2"),
+		Port:     MustGetEnv("DB_PORT_SLAVE_2"),
+		Name:     MustGetEnv("DB_NAME_SLAVE_2"),
+		User:     MustGetEnv("DB_USER_SLAVE_2"),
+		Password: MustGetEnv("DB_PASSWORD_SLAVE_2"),
+		Option:   MustGetEnv("DB_OPTION_SLAVE_2"),
+	}
+
+	var urlDbSlave2 = buildDbConnectUrl(dbSlave2)
 
 	return &Config{
 		Env: MustGetEnv("ENV"),
 		HTTPServer: HTTPServer{
 			ServerPort: MustGetEnv("SERVER_PORT"),
 		},
-		Db: Db{
-			Driver:   MustGetEnv("DB_DRIVER"),
-			Host:     MustGetEnv("DB_HOST"),
-			Port:     MustGetEnv("DB_PORT"),
-			Name:     MustGetEnv("DB_NAME"),
-			User:     MustGetEnv("DB_USER"),
-			Password: MustGetEnv("DB_PASSWORD"),
-			Option:   MustGetEnv("DB_OPTION"),
+		UrlsDb: UrlsDb{
+			DbMaster: urlDbMaster,
+			DbSlave1: urlDbSlave1,
+			DbSlave2: urlDbSlave2,
 		},
 	}
 }
@@ -76,4 +115,16 @@ func MustGetEnvAsInt(name string) int {
 
 func ParseConfigPathFromCl(currentDir string) string {
 	return PathDefault(currentDir, nil)
+}
+
+func buildDbConnectUrl(db *Db) string {
+	return fmt.Sprintf("%s://%s:%s@%s:%s/%s?%s",
+		db.Driver,
+		db.User,
+		db.Password,
+		db.Host,
+		db.Port,
+		db.Name,
+		db.Option,
+	)
 }

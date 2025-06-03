@@ -11,6 +11,7 @@
 
 1) Для оптимизации запроса в режиме подстрочного поиска я подключил расширение 'pg_trgm' (подключаем в psql)
 ```
+CREATE EXTENSION pg_trgm;
 SELECT pg_available_extension('pg_trgm');
 ```
 2) В ходе работы был добавлен составной индекс GIN для first_name и last_name.

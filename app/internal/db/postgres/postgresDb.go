@@ -28,13 +28,5 @@ func Close(db *sql.DB) error {
 }
 
 func buildDbConnectUrl(сfgEnv *config.Config) string {
-	return fmt.Sprintf("%s://%s:%s@%s:%s/%s?%s",
-		сfgEnv.Db.Driver,
-		сfgEnv.Db.User,
-		сfgEnv.Db.Password,
-		сfgEnv.Db.Host,
-		сfgEnv.Db.Port,
-		сfgEnv.Db.Name,
-		сfgEnv.Db.Option,
-	)
+	return fmt.Sprintf("%s://%s:%s@%s:%s/%s?%s")
 }

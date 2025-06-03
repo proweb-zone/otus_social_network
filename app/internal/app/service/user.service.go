@@ -99,12 +99,12 @@ func (u *UserService) Register(ctx context.Context, request *dto.UsersRequestDto
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("Error: Create user")
+		return nil, fmt.Errorf("Error: Create user ", err)
 	}
 
 	userByEmail, err := u.repo.GetUserByEmail(ctx, &request.Email)
 	if err != nil {
-		return nil, fmt.Errorf("Error: Create user")
+		return nil, fmt.Errorf("Error: call func GetUserByEmail ", err)
 	}
 
 	var userResponse dto.UsersResponseDto

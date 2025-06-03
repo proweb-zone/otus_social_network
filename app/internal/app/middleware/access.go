@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"log"
 	"net/http"
 	"otus_social_network/app/internal/app/repository"
 	"otus_social_network/app/internal/config"
@@ -27,8 +28,20 @@ func CheckAccess(config *config.Config) func(http.Handler) http.Handler {
 
 			token := bearerToken[1]
 
-			db := postgres.Connect(config)
-			userRepository := repository.InitPostgresRepository(db)
+			//db := postgres.Connect(config)
+			masterURL := []string{"user=postgres password=yourpassword dbname=master sslmode=disable"}
+			slaveURLs := []string{
+				"user=postgres password=yourpassword dbname=slave1 sslmode=disable",
+				"user=postgres password=yourpassword dbname=slave2 sslmode=disable",
+			}
+
+			dataSource, err := postgres.NewReplicationRoutingDataSource(masterURL, slaveURLs, true)
+			if err != nil {
+				log.Fatal(err)
+			}
+			defer dataSource.Close()
+
+			userRepository := repository.InitPostgresRepository(dataSource)
 			auth, _ := userRepository.CheckToken(token)
 
 			if auth != nil && len(auth.Token) > 0 {

@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"otus_social_network/app/internal/app/dto"
 	"otus_social_network/app/internal/app/repository"
@@ -22,8 +23,20 @@ type Handler struct {
 }
 
 func Init(config *config.Config) *Handler {
-	db := postgres.Connect(config)
-	userRepository := repository.InitPostgresRepository(db)
+
+	masterURL := []string{config.UrlsDb.DbMaster}
+	slaveURLs := []string{
+		config.UrlsDb.DbSlave1,
+		config.UrlsDb.DbSlave2,
+	}
+
+	dataSource, err := postgres.NewReplicationRoutingDataSource(masterURL, slaveURLs, true)
+	if err != nil {
+		log.Fatal(err)
+	}
+	//defer dataSource.Close()
+
+	userRepository := repository.InitPostgresRepository(dataSource)
 	service := service.InitUserService(userRepository)
 
 	return &Handler{service: service}
