@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"math/rand"
 	"sync"
 	"time"
 
@@ -49,8 +50,8 @@ func openDB(url string) (*sql.DB, error) {
 		return nil, err
 	}
 	// Важно:  Установите таймаут для подключения.
-	db.SetMaxOpenConns(500)
-	db.SetMaxIdleConns(1000)
+	db.SetMaxOpenConns(200)
+	db.SetMaxIdleConns(500)
 	db.SetConnMaxLifetime(5 * time.Minute)
 	err = db.PingContext(context.Background())
 	if err != nil {
@@ -60,18 +61,19 @@ func openDB(url string) (*sql.DB, error) {
 }
 
 func (r *ReplicationRoutingDataSource) GetDBMaster(ctx context.Context) (*sql.DB, error) {
-	r.dbMutex.Lock()
-	defer r.dbMutex.Unlock()
+	//r.dbMutex.Lock()
+	//defer r.dbMutex.Unlock()
 
 	if err := r.checkDB(r.masterDB); err != nil {
 		return nil, fmt.Errorf("no available master databases", err)
 	}
+
 	return r.masterDB, nil
 }
 
 func (r *ReplicationRoutingDataSource) GetDB(ctx context.Context) (*sql.DB, error) {
-	r.dbMutex.Lock()
-	defer r.dbMutex.Unlock()
+	// r.dbMutex.Lock()
+	// defer r.dbMutex.Unlock()
 
 	// Проверяем доступность мастера
 	if err := r.checkDB(r.masterDB); err != nil {
@@ -89,11 +91,22 @@ func (r *ReplicationRoutingDataSource) ChooseSlave() *sql.DB {
 	if len(r.slaveDBs) == 0 {
 		return nil
 	}
-	// if r.randomize {
-	// 	rand.Seed(time.Now().UnixNano())
-	// 	return r.slaveDBs[rand.Intn(len(r.slaveDBs))]
-	// }
-	return r.slaveDBs[0] // Возвращаем первый слейв, если не randomize
+
+	rand.Seed(time.Now().UnixNano())
+	indexDbSlave := rand.Intn(2)
+
+	err := r.slaveDBs[indexDbSlave].PingContext(context.Background())
+	if err != nil {
+
+		if indexDbSlave == 0 {
+			indexDbSlave = 1
+		} else {
+			indexDbSlave = 0
+		}
+		return r.slaveDBs[indexDbSlave]
+	}
+
+	return r.slaveDBs[indexDbSlave] // Возвращаем первый слейв, если не randomize
 }
 
 func (r *ReplicationRoutingDataSource) checkDB(db *sql.DB) error {

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"otus_social_network/app/internal/app/dto"
 	"otus_social_network/app/internal/app/entity"
 	"otus_social_network/app/internal/db/postgres"
 	"strings"
@@ -18,25 +17,53 @@ func InitPostgresRepository(dataSource *postgres.ReplicationRoutingDataSource) *
 	return &UserRepository{dataSource}
 }
 
-func (r *UserRepository) Create(ctx context.Context, user *entity.Users) (*dto.UsersResponseDto, error) {
-	var userResponse dto.UsersResponseDto
+func (r *UserRepository) Create(ctx context.Context, user *entity.Users) (*entity.Users, error) {
 
 	user.First_name = strings.ToLower(user.First_name)
 	user.Last_name = strings.ToLower(user.Last_name)
 
-	masterDb, err := r.dataSource.GetDBMaster(ctx)
+	masterDb, err := r.dataSource.GetDBMaster(context.Background())
 	if err != nil {
-		return &userResponse, err
+		return nil, err
 	}
 
-	stmt := `INSERT INTO users (first_name, last_name, email, password, birth_date, gender, hobby, city) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+	tx, err := masterDb.BeginTx(ctx, nil)
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+	defer tx.Rollback()
 
-	_, errRow := masterDb.Exec(stmt, user.First_name, user.Last_name, user.Email, user.Password, user.Birth_date, user.Gender, user.Hobby, user.City)
-	if errRow != nil {
-		return &userResponse, err
+	const insertQuery = `INSERT INTO users (first_name, last_name, email, password, birth_date, gender, hobby, city) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+	stmt, err := masterDb.PrepareContext(ctx, insertQuery)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	defer stmt.Close()
+
+	_, errExec := stmt.ExecContext(ctx, user.First_name, user.Last_name, user.Email, user.Password, user.Birth_date, user.Gender, user.Hobby, user.City)
+	if errExec != nil {
+		fmt.Errorf("Error ExecContext ", errExec)
+		return nil, errExec
 	}
 
-	return &userResponse, nil
+	err = tx.Commit()
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+
+	row := masterDb.QueryRow("SELECT id FROM users WHERE email = $1", user.Email)
+
+	var newUser entity.Users
+	err = row.Scan(&newUser.ID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &newUser, nil
 }
 
 func (r *UserRepository) GetUserById(ctx context.Context, id *int) (*entity.Users, error) {

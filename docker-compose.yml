@@ -3,7 +3,7 @@ services:
     image: postgres:16.1-alpine3.18
     container_name: postgres_master
     environment:
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_DB: ${DB_NAME_MASTER}
       POSTGRES_USER: ${DB_USER_MASTER}
       POSTGRES_PASSWORD: ${DB_PASSWORD_MASTER}
       TZ: Europe/Moscow
@@ -21,7 +21,7 @@ services:
     image: postgres:16.1-alpine3.18
     container_name: postgres_slave_sync
     environment:
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_DB: ${DB_NAME_SLAVE_1}
       POSTGRES_USER: ${DB_USER_SLAVE_1}
       POSTGRES_PASSWORD: ${DB_PASSWORD_SLAVE_1}
       TZ: Europe/Moscow
@@ -40,7 +40,7 @@ services:
     image: postgres:16.1-alpine3.18
     container_name: postgres_slave_async
     environment:
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_DB: ${DB_NAME_SLAVE_2}
       POSTGRES_USER: ${DB_USER_SLAVE_2}
       POSTGRES_PASSWORD: ${DB_PASSWORD_SLAVE_2}
       TZ: Europe/Moscow
