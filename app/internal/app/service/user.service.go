@@ -84,7 +84,7 @@ func (u *UserService) Register(ctx context.Context, request *dto.UsersRequestDto
 		birthTime = parsedTime
 	}
 
-	_, err := u.repo.Create(
+	newUser, err := u.repo.Create(
 		ctx,
 		&entity.Users{
 			First_name: request.First_name,
@@ -102,14 +102,9 @@ func (u *UserService) Register(ctx context.Context, request *dto.UsersRequestDto
 		return nil, fmt.Errorf("Error: Create user ", err)
 	}
 
-	userByEmail, err := u.repo.GetUserByEmail(ctx, &request.Email)
-	if err != nil {
-		return nil, fmt.Errorf("Error: call func GetUserByEmail ", err)
-	}
-
 	var userResponse dto.UsersResponseDto
 
-	userResponse.User_id = userByEmail.ID
+	userResponse.User_id = newUser.ID
 
 	return &userResponse, nil
 
