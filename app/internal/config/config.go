@@ -34,6 +34,7 @@ type UrlsDb struct {
 	DbMaster string
 	DbSlave1 string
 	DbSlave2 string
+	DbSlave3 string
 }
 
 func MustInit(configPath string) *Config {
@@ -75,6 +76,18 @@ func MustInit(configPath string) *Config {
 
 	var urlDbSlave2 = buildDbConnectUrl(dbSlave2)
 
+	dbSlave3 := &Db{
+		Driver:   MustGetEnv("DB_DRIVER_SLAVE_3"),
+		Host:     MustGetEnv("DB_HOST_SLAVE_3"),
+		Port:     MustGetEnv("DB_PORT_SLAVE_3"),
+		Name:     MustGetEnv("DB_NAME_SLAVE_3"),
+		User:     MustGetEnv("DB_USER_SLAVE_3"),
+		Password: MustGetEnv("DB_PASSWORD_SLAVE_3"),
+		Option:   MustGetEnv("DB_OPTION_SLAVE_3"),
+	}
+
+	var urlDbSlave3 = buildDbConnectUrl(dbSlave3)
+
 	return &Config{
 		Env: MustGetEnv("ENV"),
 		HTTPServer: HTTPServer{
@@ -84,6 +97,7 @@ func MustInit(configPath string) *Config {
 			DbMaster: urlDbMaster,
 			DbSlave1: urlDbSlave1,
 			DbSlave2: urlDbSlave2,
+			DbSlave3: urlDbSlave3,
 		},
 	}
 }

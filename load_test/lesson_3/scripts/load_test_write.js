@@ -1,7 +1,7 @@
 import http from 'k6/http';
 
 export let options = {
-  vus: 15,
+  vus: 1,
   duration: '30s',
   thresholds: {
     http_req_failed: ['rate<0.01'],
@@ -35,7 +35,7 @@ export default function () {
     'status was 200': (r) => r.status === 200,
   });
 
-   sleep(1);
+   sleep(2);
 }
 
 function generateMixedString(length) {

@@ -28,6 +28,7 @@ func Init(config *config.Config) *Handler {
 	slaveURLs := []string{
 		config.UrlsDb.DbSlave1,
 		config.UrlsDb.DbSlave2,
+		config.UrlsDb.DbSlave3,
 	}
 
 	dataSource, err := postgres.NewReplicationRoutingDataSource(masterURL, slaveURLs, true)

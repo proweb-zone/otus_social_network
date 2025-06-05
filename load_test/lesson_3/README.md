@@ -54,3 +54,33 @@ load_test/lesson_3/graphics/
 # Результат тестирования находиться по пути
 load_test/lesson_3/graphics/
 ```
+
+####Создаем кворумную репликацию Postgresql
+
+### На Master
+
+1.  Делаем  дамп roles и schema (если их не делать то при копировании бд на slave произойдет ошибка при подписке на master)
+```
+pg_dumpall -U postgres -r -h postgres_master -f /var/lib/postgresql/data/roles.dmp
+pg_dump -U postgres -Fc -h postgres_master -f /var/lib/postgresql/data/schema.dmp -s postgres
+```
+
+2. Заходим в конфиг postgresql.conf и меняем следующие параметры:
+   ```
+   wal_level = logical
+   ```
+
+3. Перезапускаем сервер(master)
+4. заходим в psql и создаем публикацию
+```
+GRANT CONNECT ON DATABASE  otus TO replicator;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO replicator;
+create publication pg_pub for table users;
+```
+
+### На SLAVE
+
+1. На всех slave заходим в psql и создаем подписку на master
+```
+CREATE SUBSCRIPTION pg_sub CONNECTION 'host=postgres_master port=5432 user=replicator password=pass dbname=otus' PUBLICATION pg_pub;
+```
