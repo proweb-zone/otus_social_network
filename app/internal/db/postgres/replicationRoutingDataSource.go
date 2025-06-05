@@ -61,8 +61,8 @@ func openDB(url string) (*sql.DB, error) {
 }
 
 func (r *ReplicationRoutingDataSource) GetDBMaster(ctx context.Context) (*sql.DB, error) {
-	//r.dbMutex.Lock()
-	//defer r.dbMutex.Unlock()
+	r.dbMutex.Lock()
+	defer r.dbMutex.Unlock()
 
 	if err := r.checkDB(r.masterDB); err != nil {
 		return nil, fmt.Errorf("no available master databases", err)
@@ -72,8 +72,8 @@ func (r *ReplicationRoutingDataSource) GetDBMaster(ctx context.Context) (*sql.DB
 }
 
 func (r *ReplicationRoutingDataSource) GetDB(ctx context.Context) (*sql.DB, error) {
-	// r.dbMutex.Lock()
-	// defer r.dbMutex.Unlock()
+	r.dbMutex.Lock()
+	defer r.dbMutex.Unlock()
 
 	// Проверяем доступность мастера
 	if err := r.checkDB(r.masterDB); err != nil {

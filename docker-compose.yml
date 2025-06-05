@@ -55,6 +55,25 @@ services:
       otus-network:
         ipv4_address: "172.33.0.5"
     env_file: ".env"
+  postgres_slave_3:
+    image: postgres:16.1-alpine3.18
+    container_name: postgres_slave_3
+    environment:
+      POSTGRES_DB: ${DB_NAME_SLAVE_3}
+      POSTGRES_USER: ${DB_USER_SLAVE_3}
+      POSTGRES_PASSWORD: ${DB_PASSWORD_SLAVE_3}
+      TZ: Europe/Moscow
+    ports:
+      - ${DB_PORT_SLAVE_3}:5432
+    volumes:
+      - ./config/postgres/slave_3/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
+      - ./pg_data/slave_3:/var/lib/postgresql/data
+    depends_on:
+      - postgres_master
+    networks:
+      otus-network:
+        ipv4_address: "172.33.0.6"
+    env_file: ".env"
 
   app:
     container_name: app_socnet
