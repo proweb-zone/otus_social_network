@@ -1,7 +1,7 @@
 import http from 'k6/http';
 
 export let options = {
-  vus: 1,
+  vus: 15,
   duration: '30s',
   thresholds: {
     http_req_failed: ['rate<0.01'],
