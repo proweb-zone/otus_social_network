@@ -178,3 +178,31 @@ func (h *Handler) SearchUser(w http.ResponseWriter, r *http.Request) {
 
 	utils.ResponseJson(users, w)
 }
+
+func (h *Handler) SetFriend(w http.ResponseWriter, r *http.Request) {
+	// TODO
+}
+
+func (h *Handler) DelFriend(w http.ResponseWriter, r *http.Request) {
+	// TODO
+}
+
+func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
+	// TODO
+}
+
+func (h *Handler) UpdatePost(w http.ResponseWriter, r *http.Request) {
+	// TODO
+}
+
+func (h *Handler) DelPost(w http.ResponseWriter, r *http.Request) {
+	// TODO
+}
+
+func (h *Handler) GetPost(w http.ResponseWriter, r *http.Request) {
+	// TODO
+}
+
+func (h *Handler) FeedPost(w http.ResponseWriter, r *http.Request) {
+	// TODO
+}
