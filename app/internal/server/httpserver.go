@@ -17,5 +17,9 @@ func StartServer(config *config.Config) {
 	r.Post("/user/register", handlers.Register)
 	r.Get("/user/search/{query}", handlers.SearchUser)
 	r.Get("/user/get/{id}", handlers.GetUser)
+
+	r.Put("/friend/set/{user_id}", handlers.SetFriend)
+	r.Put("/friend/delete/{user_id}", handlers.DeleteFriend)
+
 	http.ListenAndServe(":"+config.HTTPServer.ServerPort, r)
 }
