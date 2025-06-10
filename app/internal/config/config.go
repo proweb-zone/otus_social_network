@@ -13,6 +13,7 @@ import (
 type Config struct {
 	Env        string `yaml:"env" env-default:"local"`
 	HTTPServer `yaml:"http_server"`
+	Db
 	UrlsDb
 }
 
@@ -93,6 +94,7 @@ func MustInit(configPath string) *Config {
 		HTTPServer: HTTPServer{
 			ServerPort: MustGetEnv("SERVER_PORT"),
 		},
+		Db: *dbMaster,
 		UrlsDb: UrlsDb{
 			DbMaster: urlDbMaster,
 			DbSlave1: urlDbSlave1,

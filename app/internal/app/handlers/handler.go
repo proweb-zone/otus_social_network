@@ -19,7 +19,8 @@ import (
 )
 
 type Handler struct {
-	service *service.UserService
+	userService    *service.UserService
+	friendsService *service.FriendsService
 }
 
 func Init(config *config.Config) *Handler {
@@ -36,9 +37,15 @@ func Init(config *config.Config) *Handler {
 	//defer dataSource.Close()
 
 	userRepository := repository.InitPostgresRepository(dataSource)
-	service := service.InitUserService(userRepository)
+	userService := service.InitUserService(userRepository)
 
-	return &Handler{service: service}
+	friendsRepository := repository.InitFriendsRepository(dataSource)
+	friendsService := service.InitFriendsService()
+
+	return &Handler{
+		userService:    userService,
+		friendsService: friendsService,
+	}
 }
 
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
