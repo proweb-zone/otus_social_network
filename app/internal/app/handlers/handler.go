@@ -26,9 +26,7 @@ func Init(config *config.Config) *Handler {
 
 	masterURL := []string{config.UrlsDb.DbMaster}
 	slaveURLs := []string{
-		config.UrlsDb.DbSlave1,
-		config.UrlsDb.DbSlave2,
-		config.UrlsDb.DbSlave3,
+		config.UrlsDb.DbMaster,
 	}
 
 	dataSource, err := postgres.NewReplicationRoutingDataSource(masterURL, slaveURLs, true)
@@ -177,4 +175,14 @@ func (h *Handler) SearchUser(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf(" резултат выполнения за %s\n", elapsed)
 
 	utils.ResponseJson(users, w)
+}
+
+func (h *Handler) SetFriend(w http.ResponseWriter, r *http.Request) {
+	userId := chi.URLParam(r, "user_id")
+	fmt.Println("Добавление друга " + userId)
+}
+
+func (h *Handler) DeleteFriend(w http.ResponseWriter, r *http.Request) {
+	userId := chi.URLParam(r, "user_id")
+	fmt.Println("Удаление друга " + userId)
 }

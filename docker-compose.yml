@@ -9,10 +9,10 @@ services:
       TZ: Europe/Moscow
     ports:
       - ${DB_PORT_MASTER}:5432
-    volumes:
-      - ./config/postgres/master/pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
-      - ./config/postgres/master/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
-      - ./pg_data/master/:/var/lib/postgresql/data
+    # volumes:
+    #   - ./config/postgres/master/pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
+    #   - ./config/postgres/master/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
+    #   - ./pg_data/master/:/var/lib/postgresql/data
     networks:
       otus-network:
         ipv4_address: "172.33.0.3"
