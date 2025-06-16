@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"otus_social_network/app/internal/app/dto"
+	"otus_social_network/app/internal/app/entity"
 	"otus_social_network/app/internal/app/repository"
 	"otus_social_network/app/internal/app/service"
 	"otus_social_network/app/internal/config"
@@ -28,6 +29,7 @@ func Init(config *config.Config) *Handler {
 	masterURL := []string{config.UrlsDb.DbMaster}
 	slaveURLs := []string{
 		config.UrlsDb.DbMaster,
+		config.UrlsDb.DbMaster,
 	}
 
 	dataSource, err := postgres.NewReplicationRoutingDataSource(masterURL, slaveURLs, true)
@@ -36,11 +38,11 @@ func Init(config *config.Config) *Handler {
 	}
 	//defer dataSource.Close()
 
-	userRepository := repository.InitPostgresRepository(dataSource)
+	userRepository := repository.InitUserRepository(dataSource)
 	userService := service.InitUserService(userRepository)
 
 	friendsRepository := repository.InitFriendsRepository(dataSource)
-	friendsService := service.InitFriendsService()
+	friendsService := service.InitFriendsService(friendsRepository)
 
 	return &Handler{
 		userService:    userService,
@@ -81,7 +83,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	authResponse, err := h.service.Login(r.Context(), &requestDto)
+	authResponse, err := h.userService.Login(r.Context(), &requestDto)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -130,7 +132,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 
 	requestDto.Password = hashPass
 
-	userResponse, err := h.service.Register(r.Context(), &requestDto)
+	userResponse, err := h.userService.Register(r.Context(), &requestDto)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -147,7 +149,7 @@ func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.service.GetUserById(r.Context(), &id)
+	user, err := h.userService.GetUserById(r.Context(), id)
 
 	if err != nil {
 		http.Error(w, "Error: user not found", http.StatusBadRequest)
@@ -171,7 +173,7 @@ func (h *Handler) SearchUser(w http.ResponseWriter, r *http.Request) {
 	firstName := prepairQuery[0]
 	lastName := prepairQuery[1]
 
-	users, err := h.service.SearchUser(firstName, lastName)
+	users, err := h.userService.SearchUser(firstName, lastName)
 
 	if err != nil {
 		http.Error(w, "Error: users not found", http.StatusBadRequest)
@@ -185,11 +187,131 @@ func (h *Handler) SearchUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) SetFriend(w http.ResponseWriter, r *http.Request) {
-	userId := chi.URLParam(r, "user_id")
-	fmt.Println("Добавление друга " + userId)
+	auth, errAccessToken := h.checkTokenAccess(r)
+
+	if errAccessToken != nil {
+		http.Error(w, "Error check Bearer Token", http.StatusBadRequest)
+		return
+	}
+
+	userId := auth.User_id
+
+	friendIdStr := chi.URLParam(r, "user_id")
+
+	friendId, err := strconv.Atoi(friendIdStr)
+	if err != nil {
+		http.Error(w, "Error: invalid USER ID parameter", http.StatusBadRequest)
+		return
+	}
+
+	if userId == friendId {
+		http.Error(w, "Error нельзя добавить себя в друзья", http.StatusBadRequest)
+		return
+	}
+
+	// проверяем есть ли вообще такой пользователь в БД
+	_, errService := h.userService.GetUserById(r.Context(), friendId)
+	if errService != nil {
+		http.Error(w, "Пользователь с таким id "+friendIdStr+" не существует", http.StatusBadRequest)
+		return
+	}
+
+	// проверяем есть ли пользователь в друзья
+	friend, _ := h.friendsService.GetFriendById(userId, friendId)
+	if friend != nil {
+		http.Error(w, "Такой пользователь уже в друзьях", http.StatusBadRequest)
+		return
+	}
+
+	statusSetFriend, errSetFriend := h.friendsService.SetFriend(userId, friendId)
+	if errSetFriend != nil {
+		http.Error(w, "Ошибка добавления в друзья", http.StatusBadRequest)
+		return
+	}
+
+	if statusSetFriend == "success" {
+		w.Write([]byte("Успешное добавление пользователя в друзья!"))
+		return
+	}
+
 }
 
 func (h *Handler) DeleteFriend(w http.ResponseWriter, r *http.Request) {
-	userId := chi.URLParam(r, "user_id")
-	fmt.Println("Удаление друга " + userId)
+	auth, errAccessToken := h.checkTokenAccess(r)
+
+	if errAccessToken != nil {
+		http.Error(w, "Error check Bearer Token", http.StatusBadRequest)
+		return
+	}
+
+	userId := auth.User_id
+
+	friendIdStr := chi.URLParam(r, "user_id")
+	friendId, err := strconv.Atoi(friendIdStr)
+	if err != nil {
+		http.Error(w, "Error: invalid USER ID parameter", http.StatusBadRequest)
+		return
+	}
+
+	// проверяем есть ли пользователь в друзья
+	_, errCheckFriend := h.friendsService.GetFriendById(userId, friendId)
+	if errCheckFriend != nil {
+		http.Error(w, "Пользователя нет в друзьях", http.StatusBadRequest)
+		return
+	}
+
+	_, errDeleteFriend := h.friendsService.DeleteFriend(userId, friendId)
+	if errDeleteFriend != nil {
+		fmt.Println(errDeleteFriend)
+		http.Error(w, "Ошибка удаления друга", http.StatusBadRequest)
+		return
+	}
+
+	w.Write([]byte("Пользователь успешно удален"))
+	return
+}
+
+func (h *Handler) PostCreate() {
+
+}
+
+func (h *Handler) PostUpdate() {
+
+}
+
+func (h *Handler) PostDelete() {
+
+}
+
+func (h *Handler) PostGet() {
+
+}
+
+func (h *Handler) checkTokenAccess(r *http.Request) (*entity.Auth, error) {
+	// Извлечение токена из заголовка Authorization
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		return nil, fmt.Errorf("Authorization header missing")
+	}
+
+	bearerToken := strings.Split(authHeader, " ")
+	if len(bearerToken) != 2 || bearerToken[0] != "Bearer" {
+		return nil, fmt.Errorf("Invalid authorization header format")
+	}
+
+	token := bearerToken[1]
+
+	auth, err := h.userService.CheckAccessToken(token)
+	if err != nil {
+		return nil, err
+	}
+
+	return auth, nil
+
+	// if auth != nil && len(auth.Token) > 0 {
+	// 	next.ServeHTTP(w, r)
+	// } else {
+	// 	http.Error(w, "Error: check Token Bearer", http.StatusUnauthorized)
+	// 	return
+	// }
 }

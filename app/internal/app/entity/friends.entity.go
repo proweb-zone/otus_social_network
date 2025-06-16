@@ -4,8 +4,8 @@ import "time"
 
 type Friends struct {
 	ID        uint      `json:"id"`
-	User_id   uint      `json:"user_id`
-	Friend_id uint      `json:"friend_id`
+	User_id   int       `json:"user_id`
+	Friend_id int       `json:"friend_id`
 	CreatedAt time.Time `json:"created_at"`
 }
 

@@ -13,7 +13,7 @@ type UserRepository struct {
 	dataSource *postgres.ReplicationRoutingDataSource
 }
 
-func InitPostgresRepository(dataSource *postgres.ReplicationRoutingDataSource) *UserRepository {
+func InitUserRepository(dataSource *postgres.ReplicationRoutingDataSource) *UserRepository {
 	return &UserRepository{dataSource}
 }
 
@@ -67,7 +67,7 @@ func (r *UserRepository) Create(ctx context.Context, user *entity.Users) (*entit
 	return &newUser, nil
 }
 
-func (r *UserRepository) GetUserById(ctx context.Context, id *int) (*entity.Users, error) {
+func (r *UserRepository) GetUserById(ctx context.Context, id int) (*entity.Users, error) {
 	slaveDb := r.dataSource.ChooseSlave()
 
 	if slaveDb == nil {

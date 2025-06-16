@@ -110,10 +110,14 @@ func (u *UserService) Register(ctx context.Context, request *dto.UsersRequestDto
 
 }
 
-func (u *UserService) GetUserById(ctx context.Context, id *int) (*entity.Users, error) {
+func (u *UserService) GetUserById(ctx context.Context, id int) (*entity.Users, error) {
 	return u.repo.GetUserById(ctx, id)
 }
 
 func (u *UserService) SearchUser(firstName string, lastName string) ([]*entity.Users, error) {
 	return u.repo.SearchUsers(firstName, lastName)
+}
+
+func (u *UserService) CheckAccessToken(token string) (*entity.Auth, error) {
+	return u.repo.CheckToken(token)
 }

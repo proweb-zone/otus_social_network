@@ -41,7 +41,7 @@ func CheckAccess(config *config.Config) func(http.Handler) http.Handler {
 			}
 			defer dataSource.Close()
 
-			userRepository := repository.InitPostgresRepository(dataSource)
+			userRepository := repository.InitUserRepository(dataSource)
 			auth, _ := userRepository.CheckToken(token)
 
 			if auth != nil && len(auth.Token) > 0 {

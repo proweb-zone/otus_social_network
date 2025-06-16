@@ -16,19 +16,19 @@ func InitFriendsRepository(dataSource *postgres.ReplicationRoutingDataSource) *F
 	return &FriendsRepository{dataSource}
 }
 
-func (r *FriendsRepository) SetFriend(userId int, friendId int) (*entity.Friends, error) {
+func (r *FriendsRepository) SetFriend(userId int, friendId int) (string, error) {
 
 	ctx := context.Background()
 
 	masterDb, err := r.dataSource.GetDBMaster(ctx)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	tx, err := masterDb.BeginTx(ctx, nil)
 	if err != nil {
 		log.Fatal(err)
-		return nil, err
+		return "", err
 	}
 	defer tx.Rollback()
 
@@ -36,59 +36,72 @@ func (r *FriendsRepository) SetFriend(userId int, friendId int) (*entity.Friends
 	stmt, err := masterDb.PrepareContext(ctx, insertQuery)
 	if err != nil {
 		tx.Rollback()
-		return nil, err
+		return "", err
 	}
 	defer stmt.Close()
 
 	_, errExec := stmt.ExecContext(ctx, userId, friendId)
 	if errExec != nil {
 		fmt.Errorf("Error ExecContext ", errExec)
-		return nil, errExec
+		return "", errExec
 	}
 
 	err = tx.Commit()
 	if err != nil {
 		log.Fatal(err)
-		return nil, err
+		return "", err
 	}
 
-	return nil, nil
+	return "success", nil
 }
 
-func (r *FriendsRepository) DeleteFriend(friendId int) (*entity.Friends, error) {
+func (r *FriendsRepository) DeleteFriend(userId int, friendId int) (string, error) {
 
 	ctx := context.Background()
 
 	masterDb, err := r.dataSource.GetDBMaster(ctx)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	tx, err := masterDb.BeginTx(ctx, nil)
 	if err != nil {
 		log.Fatal(err)
-		return nil, err
+		return "", err
 	}
 	defer tx.Rollback()
 
-	const insertQuery = `"DELETE FROM friends WHERE friend_id = $1"`
-	stmt, err := masterDb.PrepareContext(ctx, insertQuery)
+	_, err = masterDb.Exec("DELETE FROM friends WHERE user_id = $1 AND friend_id = $2", userId, friendId)
 	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-	defer stmt.Close()
-
-	_, errExec := stmt.ExecContext(ctx, friendId)
-	if errExec != nil {
-		return nil, fmt.Errorf("Error ExecContext ", errExec)
+		fmt.Println("Error deleting friend:", err)
+		return "", err
 	}
 
 	err = tx.Commit()
 	if err != nil {
 		log.Fatal(err)
+		return "", err
+	}
+
+	return "success", nil
+}
+
+func (r *FriendsRepository) GetFriendById(userId int, friendId int) (*entity.Friends, error) {
+
+	slaveDb := r.dataSource.ChooseSlave()
+
+	if slaveDb == nil {
+		return nil, fmt.Errorf("no available slave databases")
+	}
+
+	row := slaveDb.QueryRow("SELECT user_id, friend_id FROM friends WHERE user_id = $1 AND friend_id = $2", userId, friendId)
+
+	var friend entity.Friends
+	err := row.Scan(&friend.User_id, &friend.Friend_id)
+
+	if err != nil {
 		return nil, err
 	}
 
-	return nil, nil
+	return &friend, nil
 }
