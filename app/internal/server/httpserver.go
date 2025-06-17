@@ -21,5 +21,10 @@ func StartServer(config *config.Config) {
 	r.Put("/friend/set/{user_id}", handlers.SetFriend)
 	r.Put("/friend/delete/{user_id}", handlers.DeleteFriend)
 
+	r.Post("/post/create", handlers.CreatePost)
+	r.Put("/post/update", handlers.UpdatePost)
+	r.Put("/post/delete/{id}", handlers.DeletePost)
+	r.Get("/post/get/{id}", handlers.GetPost)
+
 	http.ListenAndServe(":"+config.HTTPServer.ServerPort, r)
 }
