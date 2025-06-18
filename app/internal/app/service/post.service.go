@@ -13,18 +13,18 @@ func InitPostService(repo *repository.PostRepository) *PostService {
 	return &PostService{repo: repo}
 }
 
-func (p *PostService) CreatePost() (*entity.Posts, error) {
+func (p *PostService) CreatePost(userId int) (*entity.Posts, error) {
 	return nil, nil
 }
 
-func (p *PostService) UpdatePost() (*entity.Posts, error) {
+func (p *PostService) UpdatePost(userId int, postId int) (*entity.Posts, error) {
 	return nil, nil
 }
 
-func (p *PostService) DeletePost() (string, error) {
-	return "", nil
+func (p *PostService) DeletePost(userId int, postId int) (string, error) {
+	return p.repo.DeletePost(userId, postId)
 }
 
-func (p *PostService) GetPost() (*entity.Posts, error) {
-	return nil, nil
+func (p *PostService) GetPost(userId int, postId int) (*entity.Posts, error) {
+	return p.repo.GetPostById(userId, postId)
 }

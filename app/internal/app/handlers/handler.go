@@ -22,6 +22,7 @@ import (
 type Handler struct {
 	userService    *service.UserService
 	friendsService *service.FriendsService
+	postService    *service.PostService
 }
 
 func Init(config *config.Config) *Handler {
@@ -44,9 +45,13 @@ func Init(config *config.Config) *Handler {
 	friendsRepository := repository.InitFriendsRepository(dataSource)
 	friendsService := service.InitFriendsService(friendsRepository)
 
+	postsRepository := repository.InitPostRepository(dataSource)
+	postsService := service.InitPostService(postsRepository)
+
 	return &Handler{
 		userService:    userService,
 		friendsService: friendsService,
+		postService:    postsService,
 	}
 }
 
@@ -262,7 +267,6 @@ func (h *Handler) DeleteFriend(w http.ResponseWriter, r *http.Request) {
 
 	_, errDeleteFriend := h.friendsService.DeleteFriend(userId, friendId)
 	if errDeleteFriend != nil {
-		fmt.Println(errDeleteFriend)
 		http.Error(w, "Ошибка удаления друга", http.StatusBadRequest)
 		return
 	}
@@ -271,20 +275,64 @@ func (h *Handler) DeleteFriend(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (h *Handler) PostCreate() {
+func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (h *Handler) PostUpdate() {
+func (h *Handler) UpdatePost(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (h *Handler) PostDelete() {
+func (h *Handler) DeletePost(w http.ResponseWriter, r *http.Request) {
+	auth, errAccessToken := h.checkTokenAccess(r)
 
+	if errAccessToken != nil {
+		http.Error(w, "Error check Bearer Token", http.StatusBadRequest)
+		return
+	}
+
+	userId := auth.User_id
+
+	postIdStr := chi.URLParam(r, "id")
+	postId, err := strconv.Atoi(postIdStr)
+	if err != nil {
+		http.Error(w, "Error: invalid USER ID parameter", http.StatusBadRequest)
+		return
+	}
+
+	stateDeletePost, errorPost := h.postService.DeletePost(userId, postId)
+	if errorPost != nil {
+		http.Error(w, "Error: delete post", http.StatusBadRequest)
+		return
+	}
+
+	w.Write([]byte(stateDeletePost))
 }
 
-func (h *Handler) PostGet() {
+func (h *Handler) GetPost(w http.ResponseWriter, r *http.Request) {
+	auth, errAccessToken := h.checkTokenAccess(r)
 
+	if errAccessToken != nil {
+		http.Error(w, "Error check Bearer Token", http.StatusBadRequest)
+		return
+	}
+
+	userId := auth.User_id
+
+	postIdStr := chi.URLParam(r, "id")
+	postId, err := strconv.Atoi(postIdStr)
+	if err != nil {
+		http.Error(w, "Error: invalid USER ID parameter", http.StatusBadRequest)
+		return
+	}
+
+	post, errPost := h.postService.GetPost(userId, postId)
+	if errPost != nil {
+		http.Error(w, "Error: Пост с id "+postIdStr+"  не найден", http.StatusBadRequest)
+		return
+	}
+
+	utils.ResponseJson(post, w)
 }
 
 func (h *Handler) checkTokenAccess(r *http.Request) (*entity.Auth, error) {
@@ -307,11 +355,4 @@ func (h *Handler) checkTokenAccess(r *http.Request) (*entity.Auth, error) {
 	}
 
 	return auth, nil
-
-	// if auth != nil && len(auth.Token) > 0 {
-	// 	next.ServeHTTP(w, r)
-	// } else {
-	// 	http.Error(w, "Error: check Token Bearer", http.StatusUnauthorized)
-	// 	return
-	// }
 }
