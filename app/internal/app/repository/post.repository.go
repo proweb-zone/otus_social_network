@@ -35,8 +35,41 @@ func (p *PostRepository) GetPostById(userId int, postId int) (*entity.Posts, err
 	return &post, nil
 }
 
-func (p *PostRepository) CreatePost(userId int, postId int) (*entity.Posts, error) {
-	return nil, nil
+func (p *PostRepository) CreatePost(ctx context.Context, post *entity.Posts) (*entity.Posts, error) {
+	masterDb, err := p.dataSource.GetDBMaster(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	tx, err := masterDb.BeginTx(ctx, nil)
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	stmt, err := masterDb.PrepareContext(ctx, `INSERT INTO posts (user_id, text) VALUES ($1, $2) RETURNING id`)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	defer stmt.Close()
+
+	row := stmt.QueryRowContext(ctx, post.User_id, post.Text)
+
+	err = tx.Commit()
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+
+	var newPost entity.Posts
+	err = row.Scan(&newPost.ID)
+	if err != nil {
+		return nil, fmt.Errorf("scanning result: %w", err)
+	}
+
+	return &newPost, nil
 }
 
 func (p *PostRepository) DeletePost(userId int, postId int) (string, error) {
