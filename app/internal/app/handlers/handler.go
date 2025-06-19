@@ -276,11 +276,57 @@ func (h *Handler) DeleteFriend(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
+	auth, errAccessToken := h.checkTokenAccess(r)
 
+	if errAccessToken != nil {
+		http.Error(w, "Error check Bearer Token", http.StatusBadRequest)
+		return
+	}
+
+	userId := auth.User_id
+
+	fmt.Println("User ID")
+	fmt.Println(userId)
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer r.Body.Close()
+
+	var requestDto dto.PostRequestDto
+	if err := utils.DecodeJson(body, &requestDto); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	requestDto.User_id = userId
+
+	fmt.Println("Создание поста")
+	fmt.Println(requestDto)
+
+	postResponse, err := h.postService.CreatePost(r.Context(), &requestDto)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	utils.ResponseJson(postResponse, w)
 }
 
 func (h *Handler) UpdatePost(w http.ResponseWriter, r *http.Request) {
+	auth, errAccessToken := h.checkTokenAccess(r)
 
+	if errAccessToken != nil {
+		http.Error(w, "Error check Bearer Token", http.StatusBadRequest)
+		return
+	}
+
+	userId := auth.User_id
+
+	fmt.Println("Обновление поста")
+	fmt.Println(userId)
 }
 
 func (h *Handler) DeletePost(w http.ResponseWriter, r *http.Request) {

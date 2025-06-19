@@ -63,7 +63,6 @@ func (r *UserRepository) Create(ctx context.Context, user *entity.Users) (*entit
 		return nil, err
 	}
 
-	fmt.Println(newUser.ID)
 	return &newUser, nil
 }
 
