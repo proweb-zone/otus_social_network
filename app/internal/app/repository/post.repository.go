@@ -6,6 +6,7 @@ import (
 	"log"
 	"otus_social_network/app/internal/app/entity"
 	"otus_social_network/app/internal/db/postgres"
+	"strings"
 )
 
 type PostRepository struct {
@@ -72,40 +73,110 @@ func (p *PostRepository) CreatePost(ctx context.Context, post *entity.Posts) (*e
 	return &newPost, nil
 }
 
-func (p *PostRepository) DeletePost(userId int, postId int) (string, error) {
+func (p *PostRepository) DeletePost(userId int, postId int) error {
 	ctx := context.Background()
 
 	masterDb, err := p.dataSource.GetDBMaster(ctx)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	tx, err := masterDb.BeginTx(ctx, nil)
 	if err != nil {
 		log.Fatal(err)
-		return "", err
+		return err
 	}
 	defer tx.Rollback()
 
 	_, err = masterDb.Exec("DELETE FROM posts WHERE id = $1 AND user_id = $2", postId, userId)
 	if err != nil {
 		fmt.Println("Error deleting post:", err)
-		return "", err
+		return err
 	}
 
 	err = tx.Commit()
 	if err != nil {
 		log.Fatal(err)
-		return "", err
+		return err
 	}
 
-	return "success", nil
+	return nil
 }
 
-func (p *PostRepository) UpdatePost(userId int) (*entity.Posts, error) {
-	return nil, nil
+func (p *PostRepository) UpdatePost(ctx context.Context, post *entity.Posts) error {
+	masterDb, err := p.dataSource.GetDBMaster(context.Background())
+	if err != nil {
+		return err
+	}
+
+	tx, err := masterDb.BeginTx(ctx, nil)
+	if err != nil {
+		log.Fatal(err)
+		return err
+	}
+	defer tx.Rollback()
+
+	stmt, err := masterDb.PrepareContext(ctx, `UPDATE posts SET text = $1 WHERE id = $2 AND user_id = $3`)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	defer stmt.Close()
+
+	stmt.QueryRowContext(ctx, post.Text, post.ID, post.User_id)
+
+	err = tx.Commit()
+	if err != nil {
+		log.Fatal(err)
+		return err
+	}
+
+	return nil
 }
 
-func (p *PostRepository) FeedPost(userId int) (*entity.Posts, error) {
-	return nil, nil
+func (p *PostRepository) FeedPost(ids []int) (*[]entity.Posts, error) {
+	slaveDb := p.dataSource.ChooseSlave()
+
+	if slaveDb == nil {
+		return nil, fmt.Errorf("no available slave databases")
+	}
+
+	stmt, err := slaveDb.Prepare("SELECT id, user_id, text, created_at, updated_at FROM posts WHERE user_id IN ($1)")
+	if err != nil {
+		return nil, err
+	}
+	//defer stmt.Close()
+
+	rows, err := stmt.Query(buildINClause(ids))
+	if err != nil {
+		return nil, err
+	}
+	//defer result.Close()
+
+	var posts []entity.Posts
+	for rows.Next() {
+		var post entity.Posts
+		err := rows.Scan(&post.ID, &post.User_id, &post.Text, &post.CreatedAt, &post.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+		posts = append(posts, post)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return &posts, nil
+}
+
+func buildINClause(ids []int) string {
+	if len(ids) == 0 {
+		return "()" // Return empty clause for no IDs
+	}
+	clause := make([]string, len(ids))
+	for i, id := range ids {
+		clause[i] = fmt.Sprintf("%d", id)
+	}
+	return fmt.Sprintf("(%s)", strings.Join(clause, ", "))
 }

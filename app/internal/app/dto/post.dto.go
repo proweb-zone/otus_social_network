@@ -1,8 +1,10 @@
 package dto
 
 type PostRequestDto struct {
-	User_id int    `json:"user_id"`
-	Text    string `json:"text"`
+	ID         int    `json:"id"`
+	User_id    int    `json:"user_id"`
+	Text       string `json:"text"`
+	Updated_at string `json:"updated_at"`
 }
 
 type PostResponseDto struct {

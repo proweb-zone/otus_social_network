@@ -285,8 +285,42 @@ func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	userId := auth.User_id
 
-	fmt.Println("User ID")
-	fmt.Println(userId)
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer r.Body.Close()
+
+	var requestDto dto.PostRequestDto
+	if err := utils.DecodeJson(body, &requestDto); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	requestDto.User_id = userId
+
+	newPost, err := h.postService.CreatePost(r.Context(), &requestDto)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	var postResponse dto.PostResponseDto
+	postResponse.Post_id = newPost.ID
+
+	utils.ResponseJson(postResponse, w)
+}
+
+func (h *Handler) UpdatePost(w http.ResponseWriter, r *http.Request) {
+	auth, errAccessToken := h.checkTokenAccess(r)
+
+	if errAccessToken != nil {
+		http.Error(w, "Error check Bearer Token", http.StatusBadRequest)
+		return
+	}
+
+	userId := auth.User_id
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -303,30 +337,21 @@ func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	requestDto.User_id = userId
 
-	fmt.Println("Создание поста")
-	fmt.Println(requestDto)
-
-	postResponse, err := h.postService.CreatePost(r.Context(), &requestDto)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	errorPost := h.postService.UpdatePost(r.Context(), &requestDto)
+	if errorPost != nil {
+		http.Error(w, errorPost.Error(), http.StatusBadRequest)
 		return
 	}
 
-	utils.ResponseJson(postResponse, w)
-}
-
-func (h *Handler) UpdatePost(w http.ResponseWriter, r *http.Request) {
-	auth, errAccessToken := h.checkTokenAccess(r)
-
-	if errAccessToken != nil {
-		http.Error(w, "Error check Bearer Token", http.StatusBadRequest)
+	post, errPost := h.postService.GetPost(requestDto.User_id, requestDto.ID)
+	if errPost != nil {
+		http.Error(w, errPost.Error(), http.StatusBadRequest)
 		return
 	}
 
-	userId := auth.User_id
+	utils.ResponseJson(post, w)
 
-	fmt.Println("Обновление поста")
-	fmt.Println(userId)
+	w.Write([]byte("success"))
 }
 
 func (h *Handler) DeletePost(w http.ResponseWriter, r *http.Request) {
@@ -346,13 +371,13 @@ func (h *Handler) DeletePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	stateDeletePost, errorPost := h.postService.DeletePost(userId, postId)
+	errorPost := h.postService.DeletePost(userId, postId)
 	if errorPost != nil {
 		http.Error(w, "Error: delete post", http.StatusBadRequest)
 		return
 	}
 
-	w.Write([]byte(stateDeletePost))
+	w.Write([]byte("success"))
 }
 
 func (h *Handler) GetPost(w http.ResponseWriter, r *http.Request) {
@@ -379,6 +404,31 @@ func (h *Handler) GetPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.ResponseJson(post, w)
+}
+
+func (h *Handler) FeedPost(w http.ResponseWriter, r *http.Request) {
+	auth, errAccessToken := h.checkTokenAccess(r)
+
+	if errAccessToken != nil {
+		http.Error(w, "Error check Bearer Token", http.StatusBadRequest)
+		return
+	}
+
+	userId := auth.User_id
+
+	ids, errIds := h.friendsService.GetFriendIds(userId)
+	if errIds != nil {
+		http.Error(w, errIds.Error(), http.StatusBadRequest)
+		return
+	}
+
+	posts, errPosts := h.postService.FeedPost(ids)
+	if errPosts != nil {
+		http.Error(w, errIds.Error(), http.StatusBadRequest)
+		return
+	}
+
+	utils.ResponseJson(posts, w)
 }
 
 func (h *Handler) checkTokenAccess(r *http.Request) (*entity.Auth, error) {

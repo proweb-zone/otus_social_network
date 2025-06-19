@@ -34,19 +34,14 @@ func (r *UserRepository) Create(ctx context.Context, user *entity.Users) (*entit
 	}
 	defer tx.Rollback()
 
-	const insertQuery = `INSERT INTO users (first_name, last_name, email, password, birth_date, gender, hobby, city) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
-	stmt, err := masterDb.PrepareContext(ctx, insertQuery)
+	stmt, err := masterDb.PrepareContext(ctx, `INSERT INTO users (first_name, last_name, email, password, birth_date, gender, hobby, city) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`)
 	if err != nil {
 		tx.Rollback()
 		return nil, err
 	}
 	defer stmt.Close()
 
-	_, errExec := stmt.ExecContext(ctx, user.First_name, user.Last_name, user.Email, user.Password, user.Birth_date, user.Gender, user.Hobby, user.City)
-	if errExec != nil {
-		fmt.Errorf("Error ExecContext ", errExec)
-		return nil, errExec
-	}
+	row := stmt.QueryRowContext(ctx, user.First_name, user.Last_name, user.Email, user.Password, user.Birth_date, user.Gender, user.Hobby, user.City)
 
 	err = tx.Commit()
 	if err != nil {
@@ -54,12 +49,10 @@ func (r *UserRepository) Create(ctx context.Context, user *entity.Users) (*entit
 		return nil, err
 	}
 
-	row := masterDb.QueryRow("SELECT id FROM users WHERE email = $1", user.Email)
-
 	var newUser entity.Users
-	err = row.Scan(&newUser.ID)
+	errScan := row.Scan(&newUser.ID)
 
-	if err != nil {
+	if errScan != nil {
 		return nil, err
 	}
 

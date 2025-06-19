@@ -17,6 +17,10 @@ func (u *FriendsService) GetFriendById(userId int, friendId int) (*entity.Friend
 	return u.repo.GetFriendById(userId, friendId)
 }
 
+func (u *FriendsService) GetFriendIds(userId int) ([]int, error) {
+	return u.repo.GetFriendIds(userId)
+}
+
 func (u *FriendsService) SetFriend(userId int, friendId int) (string, error) {
 	return u.repo.SetFriend(userId, friendId)
 }
