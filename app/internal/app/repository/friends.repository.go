@@ -105,3 +105,32 @@ func (r *FriendsRepository) GetFriendById(userId int, friendId int) (*entity.Fri
 
 	return &friend, nil
 }
+
+func (r *FriendsRepository) GetFriendIds(userId int) ([]int, error) {
+	slaveDb := r.dataSource.ChooseSlave()
+
+	if slaveDb == nil {
+		return nil, fmt.Errorf("no available slave databases")
+	}
+
+	rows, err := slaveDb.Query("SELECT friend_id FROM friends WHERE user_id = $1", userId)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+
+	var ids []int
+	for rows.Next() {
+		var friend_id int
+		if err := rows.Scan(&friend_id); err != nil {
+			log.Fatal(err)
+		}
+		ids = append(ids, friend_id)
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	return ids, nil
+}

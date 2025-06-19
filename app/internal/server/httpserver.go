@@ -25,6 +25,7 @@ func StartServer(config *config.Config) {
 	r.Put("/post/update", handlers.UpdatePost)
 	r.Put("/post/delete/{id}", handlers.DeletePost)
 	r.Get("/post/get/{id}", handlers.GetPost)
+	r.Get("/post/feed", handlers.FeedPost)
 
 	http.ListenAndServe(":"+config.HTTPServer.ServerPort, r)
 }

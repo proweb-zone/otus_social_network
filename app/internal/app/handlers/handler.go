@@ -406,6 +406,31 @@ func (h *Handler) GetPost(w http.ResponseWriter, r *http.Request) {
 	utils.ResponseJson(post, w)
 }
 
+func (h *Handler) FeedPost(w http.ResponseWriter, r *http.Request) {
+	auth, errAccessToken := h.checkTokenAccess(r)
+
+	if errAccessToken != nil {
+		http.Error(w, "Error check Bearer Token", http.StatusBadRequest)
+		return
+	}
+
+	userId := auth.User_id
+
+	ids, errIds := h.friendsService.GetFriendIds(userId)
+	if errIds != nil {
+		http.Error(w, errIds.Error(), http.StatusBadRequest)
+		return
+	}
+
+	posts, errPosts := h.postService.FeedPost(ids)
+	if errPosts != nil {
+		http.Error(w, errIds.Error(), http.StatusBadRequest)
+		return
+	}
+
+	utils.ResponseJson(posts, w)
+}
+
 func (h *Handler) checkTokenAccess(r *http.Request) (*entity.Auth, error) {
 	// Извлечение токена из заголовка Authorization
 	authHeader := r.Header.Get("Authorization")

@@ -56,3 +56,7 @@ func (p *PostService) DeletePost(userId int, postId int) error {
 func (p *PostService) GetPost(userId int, postId int) (*entity.Posts, error) {
 	return p.repo.GetPostById(userId, postId)
 }
+
+func (p *PostService) FeedPost(ids []int) (*[]entity.Posts, error) {
+	return p.repo.FeedPost(ids)
+}

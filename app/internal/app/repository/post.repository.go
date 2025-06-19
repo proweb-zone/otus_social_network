@@ -6,6 +6,7 @@ import (
 	"log"
 	"otus_social_network/app/internal/app/entity"
 	"otus_social_network/app/internal/db/postgres"
+	"strings"
 )
 
 type PostRepository struct {
@@ -133,6 +134,49 @@ func (p *PostRepository) UpdatePost(ctx context.Context, post *entity.Posts) err
 	return nil
 }
 
-func (p *PostRepository) FeedPost(userId int) (*entity.Posts, error) {
-	return nil, nil
+func (p *PostRepository) FeedPost(ids []int) (*[]entity.Posts, error) {
+	slaveDb := p.dataSource.ChooseSlave()
+
+	if slaveDb == nil {
+		return nil, fmt.Errorf("no available slave databases")
+	}
+
+	stmt, err := slaveDb.Prepare("SELECT id, user_id, text, created_at, updated_at FROM posts WHERE user_id IN ($1)")
+	if err != nil {
+		return nil, err
+	}
+	//defer stmt.Close()
+
+	rows, err := stmt.Query(buildINClause(ids))
+	if err != nil {
+		return nil, err
+	}
+	//defer result.Close()
+
+	var posts []entity.Posts
+	for rows.Next() {
+		var post entity.Posts
+		err := rows.Scan(&post.ID, &post.User_id, &post.Text, &post.CreatedAt, &post.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+		posts = append(posts, post)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return &posts, nil
+}
+
+func buildINClause(ids []int) string {
+	if len(ids) == 0 {
+		return "()" // Return empty clause for no IDs
+	}
+	clause := make([]string, len(ids))
+	for i, id := range ids {
+		clause[i] = fmt.Sprintf("%d", id)
+	}
+	return fmt.Sprintf("(%s)", strings.Join(clause, ", "))
 }
