@@ -6,6 +6,8 @@ import (
 	"otus_social_network/app/internal/app/dto"
 	"otus_social_network/app/internal/app/entity"
 	"otus_social_network/app/internal/app/repository"
+	"strings"
+	"time"
 )
 
 type PostService struct {
@@ -16,31 +18,38 @@ func InitPostService(repo *repository.PostRepository) *PostService {
 	return &PostService{repo: repo}
 }
 
-func (p *PostService) CreatePost(ctx context.Context, request *dto.PostRequestDto) (*dto.PostResponseDto, error) {
-	newPost, err := p.repo.CreatePost(
+func (p *PostService) CreatePost(ctx context.Context, request *dto.PostRequestDto) (*entity.Posts, error) {
+	return p.repo.CreatePost(
 		ctx,
 		&entity.Posts{
 			User_id: request.User_id,
 			Text:    request.Text,
 		},
 	)
+}
 
-	if err != nil {
-		return nil, fmt.Errorf("Error: Create post ", err)
+func (p *PostService) UpdatePost(ctx context.Context, request *dto.PostRequestDto) error {
+	var updatedAt time.Time
+	if len(request.Updated_at) > 0 {
+		parsedTime, err := time.Parse("2006-01-02", strings.TrimSpace(request.Updated_at))
+		if err != nil {
+			return fmt.Errorf("Error: Incorect date in field updated_at")
+		}
+		updatedAt = parsedTime
 	}
 
-	var postResponse dto.PostResponseDto
-
-	postResponse.Post_id = newPost.ID
-
-	return &postResponse, nil
+	return p.repo.UpdatePost(
+		ctx,
+		&entity.Posts{
+			ID:        request.ID,
+			User_id:   request.User_id,
+			Text:      request.Text,
+			UpdatedAt: updatedAt,
+		},
+	)
 }
 
-func (p *PostService) UpdatePost(userId int, postId int) (*entity.Posts, error) {
-	return nil, nil
-}
-
-func (p *PostService) DeletePost(userId int, postId int) (string, error) {
+func (p *PostService) DeletePost(userId int, postId int) error {
 	return p.repo.DeletePost(userId, postId)
 }
 
