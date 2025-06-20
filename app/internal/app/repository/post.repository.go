@@ -7,6 +7,8 @@ import (
 	"otus_social_network/app/internal/app/entity"
 	"otus_social_network/app/internal/db/postgres"
 	"strings"
+
+	"github.com/lib/pq"
 )
 
 type PostRepository struct {
@@ -141,17 +143,18 @@ func (p *PostRepository) FeedPost(ids []int) (*[]entity.Posts, error) {
 		return nil, fmt.Errorf("no available slave databases")
 	}
 
-	stmt, err := slaveDb.Prepare("SELECT id, user_id, text, created_at, updated_at FROM posts WHERE user_id IN ($1)")
-	if err != nil {
-		return nil, err
-	}
-	//defer stmt.Close()
+	ctx := context.Background()
 
-	rows, err := stmt.Query(buildINClause(ids))
+	query := "SELECT id, user_id, text, created_at, updated_at FROM posts WHERE user_id = ANY($1)"
+
+	values := make([]interface{}, 1)
+	values[0] = pq.Array(ids)
+
+	rows, err := slaveDb.QueryContext(ctx, query, values...)
 	if err != nil {
 		return nil, err
 	}
-	//defer result.Close()
+	defer rows.Close()
 
 	var posts []entity.Posts
 	for rows.Next() {
