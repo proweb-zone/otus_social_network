@@ -428,6 +428,11 @@ func (h *Handler) FeedPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if posts == nil || len(*posts) == 0 {
+		http.Error(w, "news list friends not found", http.StatusBadRequest)
+		return
+	}
+
 	utils.ResponseJson(posts, w)
 }
 
