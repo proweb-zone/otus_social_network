@@ -300,16 +300,16 @@ func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	requestDto.User_id = userId
 
-	newPost, err := h.postService.CreatePost(r.Context(), &requestDto)
-	if err != nil {
+	errCreatePost := h.postService.CreatePost(r.Context(), &requestDto)
+	if errCreatePost != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	var postResponse dto.PostResponseDto
-	postResponse.Post_id = newPost.ID
+	// var postResponse dto.PostResponseDto
+	// postResponse.Post_id = newPost.ID
 
-	utils.ResponseJson(postResponse, w)
+	// utils.ResponseJson(postResponse, w)
 }
 
 func (h *Handler) UpdatePost(w http.ResponseWriter, r *http.Request) {
@@ -428,7 +428,7 @@ func (h *Handler) FeedPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if posts == nil || len(*posts) == 0 {
+	if posts == nil {
 		http.Error(w, "news list friends not found", http.StatusBadRequest)
 		return
 	}
