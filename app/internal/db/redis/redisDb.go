@@ -52,7 +52,7 @@ func (r *RedisDb) AddMsg(userID int, msg string) error {
 	}
 
 	// Удаляем сообщения, если их больше 1000
-	r.Client.ZRemRangeByRank(ctx, "feeds", 0, -1001)
+	r.Client.ZRemRangeByRank(ctx, key, 0, -1001)
 
 	return nil
 }
