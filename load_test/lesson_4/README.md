@@ -53,7 +53,7 @@ docker compose up -d
 
 3) Далее нужно провести миграцию БД
 ```
-go run app/cmd/migration/main.go
+make migration-up
 ```
 
 4) Через postman создаем 3 тестовых пользователя (перед этим нужно загрузить Postman коллекцию из корня проекта)
