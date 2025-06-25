@@ -14,11 +14,14 @@ func InitDialogService(repo *repository.DialogRepository) *DialogService {
 	return &DialogService{repo: repo}
 }
 
-func (d *DialogService) SendMsgUser(requestDialog *dto.DialogRequestDto) error {
-	return d.repo.SendMsgUser(requestDialog)
+func (d *DialogService) SendMsgUser(requestDialog *dto.DialogRequestDto) (*entity.Dialog, error) {
+	return d.repo.SendMsgUser(&entity.Dialog{
+		User_id_sender:    requestDialog.User_id_sender,
+		User_id_recipient: requestDialog.User_id_recipient,
+		Msg:               requestDialog.Msg,
+	})
 }
 
-func (d *DialogService) GetDialogList() ([]*entity.Dialog, error) {
-	// TODO add getDialogList
-	return nil, nil
+func (d *DialogService) GetDialogList(userIdSender int, userIdRecepient int) (*[]entity.Dialog, error) {
+	return d.repo.GetDialogList(userIdSender, userIdRecepient)
 }

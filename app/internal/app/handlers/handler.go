@@ -442,7 +442,6 @@ func (h *Handler) FeedPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) SendMsgUser(w http.ResponseWriter, r *http.Request) {
-	// TODO реализовать функционал отправки сообщения пользователю
 	auth, errAccessToken := h.checkTokenAccess(r)
 
 	if errAccessToken != nil {
@@ -480,15 +479,17 @@ func (h *Handler) SendMsgUser(w http.ResponseWriter, r *http.Request) {
 	requestDialogDto.User_id_sender = userId
 	requestDialogDto.User_id_recipient = userIdRecepient
 
-	errSendMsgUser := h.dialogService.SendMsgUser(&requestDialogDto)
+	dialogId, errSendMsgUser := h.dialogService.SendMsgUser(&requestDialogDto)
 	if errSendMsgUser != nil {
 		http.Error(w, errSendMsgUser.Error(), http.StatusBadRequest)
 		return
 	}
+
+	//w.Write([]byte("success"))
+	utils.ResponseJson(dialogId, w)
 }
 
 func (h *Handler) GetDialog(w http.ResponseWriter, r *http.Request) {
-	// TODO реализовать функционал получения диалога пользователю
 	auth, errAccessToken := h.checkTokenAccess(r)
 
 	if errAccessToken != nil {
@@ -496,8 +497,27 @@ func (h *Handler) GetDialog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userId := auth.User_id
-	fmt.Println(userId)
+	userIdSender := auth.User_id
+
+	userIdRecepientStr := chi.URLParam(r, "user_id")
+	userIdRecepient, err := strconv.Atoi(userIdRecepientStr)
+	if err != nil {
+		http.Error(w, "Error: User id "+userIdRecepientStr+"  не найден", http.StatusBadRequest)
+		return
+	}
+
+	if userIdSender == userIdRecepient {
+		http.Error(w, "Вы не можете получать диалог самого себя", http.StatusBadRequest)
+		return
+	}
+
+	dialogList, errorDialog := h.dialogService.GetDialogList(userIdSender, userIdRecepient)
+	if errorDialog != nil {
+		http.Error(w, errorDialog.Error(), http.StatusBadRequest)
+		return
+	}
+
+	utils.ResponseJson(dialogList, w)
 }
 
 func (h *Handler) checkTokenAccess(r *http.Request) (*entity.Auth, error) {
