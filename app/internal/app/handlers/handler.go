@@ -23,6 +23,7 @@ type Handler struct {
 	userService    *service.UserService
 	friendsService *service.FriendsService
 	postService    *service.PostService
+	dialogService  *service.DialogService
 }
 
 func Init(config *config.Config) *Handler {
@@ -48,10 +49,14 @@ func Init(config *config.Config) *Handler {
 	postsRepository := repository.InitPostRepository(dataSource)
 	postsService := service.InitPostService(postsRepository)
 
+	dialogRepository := repository.InitDialogRepository(dataSource)
+	dialogService := service.InitDialogService(dialogRepository)
+
 	return &Handler{
 		userService:    userService,
 		friendsService: friendsService,
 		postService:    postsService,
+		dialogService:  dialogService,
 	}
 }
 
@@ -434,6 +439,65 @@ func (h *Handler) FeedPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.ResponseJson(posts, w)
+}
+
+func (h *Handler) SendMsgUser(w http.ResponseWriter, r *http.Request) {
+	// TODO реализовать функционал отправки сообщения пользователю
+	auth, errAccessToken := h.checkTokenAccess(r)
+
+	if errAccessToken != nil {
+		http.Error(w, "Error check Bearer Token", http.StatusBadRequest)
+		return
+	}
+
+	userId := auth.User_id
+
+	userIdRecepientStr := chi.URLParam(r, "user_id")
+	userIdRecepient, err := strconv.Atoi(userIdRecepientStr)
+	if err != nil {
+		http.Error(w, "Error: User id "+userIdRecepientStr+"  не найден", http.StatusBadRequest)
+		return
+	}
+
+	if userId == userIdRecepient {
+		http.Error(w, "Вы не можете отправлять письмо самим себе", http.StatusBadRequest)
+		return
+	}
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer r.Body.Close()
+
+	var requestDialogDto dto.DialogRequestDto
+	if err := utils.DecodeJson(body, &requestDialogDto); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	requestDialogDto.User_id_sender = userId
+	requestDialogDto.User_id_recipient = userIdRecepient
+
+	errSendMsgUser := h.dialogService.SendMsgUser(&requestDialogDto)
+	if errSendMsgUser != nil {
+		http.Error(w, errSendMsgUser.Error(), http.StatusBadRequest)
+		return
+	}
+}
+
+func (h *Handler) GetDialog(w http.ResponseWriter, r *http.Request) {
+	// TODO реализовать функционал получения диалога пользователю
+	auth, errAccessToken := h.checkTokenAccess(r)
+
+	if errAccessToken != nil {
+		http.Error(w, "Error check Bearer Token", http.StatusBadRequest)
+		return
+	}
+
+	userId := auth.User_id
+	fmt.Println(userId)
 }
 
 func (h *Handler) checkTokenAccess(r *http.Request) (*entity.Auth, error) {
