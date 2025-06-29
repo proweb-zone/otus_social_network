@@ -1,3 +1,4 @@
 pg_data
 redis_data
+rabbitmq_data
 app/cmd/build_data/people.v2.csv
