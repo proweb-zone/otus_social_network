@@ -441,6 +441,25 @@ func (h *Handler) FeedPost(w http.ResponseWriter, r *http.Request) {
 	utils.ResponseJson(posts, w)
 }
 
+func (h *Handler) FeedPostWebSocket(w http.ResponseWriter, r *http.Request) {
+	auth, errAccessToken := h.checkTokenAccess(r)
+
+	if errAccessToken != nil {
+		http.Error(w, "Error check Bearer Token", http.StatusBadRequest)
+		return
+	}
+
+	userId := auth.User_id
+
+	ids, errIds := h.friendsService.GetFriendIds(userId)
+	if errIds != nil {
+		http.Error(w, errIds.Error(), http.StatusBadRequest)
+		return
+	}
+
+	h.postService.FeedPostWebSocket(ids)
+}
+
 func (h *Handler) SendMsgUser(w http.ResponseWriter, r *http.Request) {
 	auth, errAccessToken := h.checkTokenAccess(r)
 
