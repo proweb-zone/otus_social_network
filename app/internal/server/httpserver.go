@@ -30,5 +30,7 @@ func StartServer(config *config.Config) {
 	r.Post("/dialog/{user_id}/send", handlers.SendMsgUser)
 	r.Get("/dialog/{user_id}/list", handlers.GetDialog)
 
+	r.Get("/post/feed/posted", handlers.FeedPostWebSocket)
+
 	http.ListenAndServe(":"+config.HTTPServer.ServerPort, r)
 }

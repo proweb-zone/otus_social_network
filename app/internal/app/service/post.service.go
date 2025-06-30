@@ -3,12 +3,16 @@ package service
 import (
 	"context"
 	"fmt"
+	"log"
 	"otus_social_network/app/internal/app/dto"
 	"otus_social_network/app/internal/app/entity"
 	"otus_social_network/app/internal/app/repository"
+	"otus_social_network/app/internal/db/rabbitmq"
 	"otus_social_network/app/internal/db/redis"
 	"strings"
 	"time"
+
+	"github.com/streadway/amqp"
 )
 
 type PostService struct {
@@ -32,15 +36,26 @@ func (p *PostService) CreatePost(ctx context.Context, request *dto.PostRequestDt
 		return errorCreatePost
 	}
 
-	redis, errConnRedis := redis.InitRedisDb()
-	if errConnRedis != nil {
-		return errConnRedis
+	// redis, errConnRedis := redis.InitRedisDb()
+	// if errConnRedis != nil {
+	// 	return errConnRedis
+	// }
+
+	// errAddMsg := redis.AddMsg(request.User_id, request.Text)
+
+	// if errAddMsg != nil {
+	// 	return errAddMsg
+	// }
+
+	// работаем через очереди RabbitMq
+	rabbitmq, errConnRabbitmq := rabbitmq.InitRabbitMqDb()
+	if errConnRabbitmq != nil {
+		return errConnRabbitmq
 	}
 
-	errAddMsg := redis.AddMsg(request.User_id, request.Text)
-
-	if errAddMsg != nil {
-		return errAddMsg
+	errAddMsgRabbitmq := rabbitmq.AddMsg(request.User_id, request.Text)
+	if errAddMsgRabbitmq != nil {
+		return errAddMsgRabbitmq
 	}
 
 	return nil
@@ -89,4 +104,50 @@ func (p *PostService) FeedPost(ids []int) ([]*entity.Posts, error) {
 	}
 
 	return posts, nil
+}
+
+func (p *PostService) FeedPostWebSocket(ids []int) {
+	// Подключение к RabbitMQ через WebSocket
+	connStr := "amqp://guest:guest@localhost:5672/" // Замените на ваш адрес, если он отличается
+
+	conn, err := amqp.Dial(connStr)
+	if err != nil {
+		log.Fatalf("Не удалось подключиться к RabbitMQ: %v", err)
+	}
+	defer conn.Close()
+
+	ch, err := conn.Channel()
+	if err != nil {
+		log.Fatalf("Не удалось получить канал: %v", err)
+	}
+	defer ch.Close()
+
+	// Важно:  Укажите имя очереди, на которую вы хотите подписаться
+	queueName := "userid_2"
+
+	// Подписка на очередь
+	msgs, err := ch.Consume(
+		queueName, // Имя очереди
+		"",        // Имя потребителя (пустая строка для автоматического назначения)
+		true,      // Автоматическое подтверждение
+		false,     // Не исключать сообщения
+		false,     // Не делать прерывания
+		false,     // Не делать приоритет
+		nil,       // Опции
+	)
+	if err != nil {
+		log.Fatalf("Не удалось подписаться на очередь: %v", err)
+	}
+
+	// Обработка сообщений
+	forever := make(chan bool)
+	go func() {
+		for d := range msgs {
+			fmt.Printf("Получено сообщение: %s\n", string(d.Body))
+		}
+	}()
+
+	fmt.Println("Подписан на очередь", queueName)
+	fmt.Println("Ждем сообщений...")
+	<-forever
 }
