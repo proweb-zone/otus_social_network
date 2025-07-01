@@ -9,7 +9,9 @@ import (
 	"otus_social_network/app/internal/app/repository"
 	"otus_social_network/app/internal/db/rabbitmq"
 	"otus_social_network/app/internal/db/redis"
+	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/streadway/amqp"
@@ -107,43 +109,63 @@ func (p *PostService) FeedPost(ids []int) ([]*entity.Posts, error) {
 }
 
 func (p *PostService) FeedPostWebSocket(ids []int) {
-	// Подключение к RabbitMQ через WebSocket
-	connStr := "amqp://guest:guest@localhost:5672/" // Замените на ваш адрес, если он отличается
+	connStr := "amqp://guest:guest@172.33.0.6:5672/"
 
 	conn, err := amqp.Dial(connStr)
 	if err != nil {
 		log.Fatalf("Не удалось подключиться к RabbitMQ: %v", err)
 	}
-	defer conn.Close()
 
 	ch, err := conn.Channel()
 	if err != nil {
 		log.Fatalf("Не удалось получить канал: %v", err)
 	}
-	defer ch.Close()
 
-	// Важно:  Укажите имя очереди, на которую вы хотите подписаться
-	queueName := "userid_2"
-
-	// Подписка на очередь
-	msgs, err := ch.Consume(
-		queueName, // Имя очереди
-		"",        // Имя потребителя (пустая строка для автоматического назначения)
-		true,      // Автоматическое подтверждение
-		false,     // Не исключать сообщения
-		false,     // Не делать прерывания
-		false,     // Не делать приоритет
-		nil,       // Опции
-	)
-	if err != nil {
-		log.Fatalf("Не удалось подписаться на очередь: %v", err)
+	var wg sync.WaitGroup
+	for _, id := range ids {
+		wg.Add(1)
+		idStr := strconv.FormatInt(int64(id), 10)
+		go consumeMessages(ch, "userid_"+idStr, &wg)
 	}
 
-	// Обработка сообщений
+	wg.Wait()
+}
+
+func consumeMessages(ch *amqp.Channel, queueName string, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	q, err := ch.QueueDeclare(
+		queueName, // name
+		false,     // durable
+		false,     // delete when unused
+		false,     // exclusive
+		false,     // no-wait
+		nil,       // arguments
+	)
+	if err != nil {
+		log.Fatalf("Failed to declare a queue: %v", err)
+	}
+
+	msgs, err := ch.Consume(
+		q.Name, // queue
+		"",     // consumer
+		true,   // auto-ack
+		false,  // exclusive
+		false,  // no-local
+		false,  // no-wait
+		nil,    // args
+	)
+	if err != nil {
+		log.Fatalf("Failed to consume messages: %v", err)
+	}
+
 	forever := make(chan bool)
+
 	go func() {
-		for d := range msgs {
-			fmt.Printf("Получено сообщение: %s\n", string(d.Body))
+		for msg := range msgs {
+			fmt.Printf("Получена новость: %s от пользователя %s\n", msg.Body, queueName)
+			// time.Sleep(2 * time.Second)
+			// msg.Ack(false)
 		}
 	}()
 

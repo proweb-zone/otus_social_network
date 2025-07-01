@@ -108,10 +108,20 @@
 		{
 			"name": "Добавление друга",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "G4wybdzmbIzDbUfeHUfhWBFGUxaabEAR",
+							"type": "string"
+						}
+					]
+				},
 				"method": "PUT",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3002/friend/set/12",
+					"raw": "http://localhost:3002/friend/set/3",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -120,7 +130,7 @@
 					"path": [
 						"friend",
 						"set",
-						"12"
+						"3"
 					]
 				}
 			},
@@ -227,7 +237,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "HxMtBZG48naYMP2F8O6UntOWUNUkOmQA",
+							"value": "YoblkAYJJnjQrFmw7luC0d1SQjxbqLYh",
 							"type": "string"
 						}
 					]
@@ -236,7 +246,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"Text\": \"тестовый пост орппаавы\"\n}",
+					"raw": "{\n    \"Text\": \"post - 5 user - 3\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -269,8 +279,109 @@
 		{
 			"name": "Лента новостей",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "d2JGrLeaQgnQemaVIu4kQjtyaGL5sCxV",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3002/post/feed",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3002",
+					"path": [
+						"post",
+						"feed"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Отправка сообщений пользователю",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "a8Vs8TZLz1cImiKUYvGCZPkGAsg7I0Jj",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"Msg\": \"привет\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3002/dialog/3/send",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3002",
+					"path": [
+						"dialog",
+						"3",
+						"send"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Получение диалога пользователя",
+			"request": {
 				"method": "GET",
 				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Получение ленты новостей друзей пользователя (websocket)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "a8Vs8TZLz1cImiKUYvGCZPkGAsg7I0Jj",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3002/post/feed/posted",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3002",
+					"path": [
+						"post",
+						"feed",
+						"posted"
+					]
+				}
 			},
 			"response": []
 		}
