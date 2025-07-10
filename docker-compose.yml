@@ -17,6 +17,44 @@ services:
       otus-network:
         ipv4_address: "172.33.0.3"
     env_file: ".env"
+  postgres_shard2:
+    image: postgres:16.1-alpine3.18
+    container_name: postgres_shard2
+    environment:
+      POSTGRES_DB: ${DB_NAME_SLAVE_2}
+      POSTGRES_USER: ${DB_USER_SLAVE_2}
+      POSTGRES_PASSWORD: ${DB_PASSWORD_SLAVE_2}
+      TZ: Europe/Moscow
+    ports:
+      - ${DB_PORT_SLAVE_2}:5432
+    volumes:
+    #   - ./config/postgres/master/pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
+    #   - ./config/postgres/master/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
+      - ./pg_data/master/:/var/lib/postgresql/data
+    networks:
+      otus-network:
+        ipv4_address: "172.33.0.12"
+    env_file: ".env"
+  citus:
+    image: citusdata/citus:13.0
+    container_name: citus
+    ports:
+      - "5431:5432"
+    environment:
+      - POSTGRES_USER=citus_user
+      - POSTGRES_PASSWORD=citus_password
+      - POSTGRES_DB=citus
+      - PGDATA=/var/lib/postgresql/data
+      - CITUS_SHARDS=postgres_master:5432,postgres_shard2:5434
+    volumes:
+      - ./pg_data/citus-data/:/var/lib/postgresql/data
+    depends_on:
+      - postgres_master
+      - postgres_shard2
+    networks:
+      otus-network:
+        ipv4_address: "172.33.0.9"
+    env_file: ".env"
   redis:
     image: redis:alpine
     container_name: redis-container
