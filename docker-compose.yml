@@ -1,6 +1,6 @@
 services:
   postgres_master:
-    image: postgres:16.1-alpine3.18
+    image: citusdata/citus:latest
     container_name: postgres_master
     environment:
       POSTGRES_DB: ${DB_NAME_MASTER}
@@ -13,12 +13,13 @@ services:
     #   - ./config/postgres/master/pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
     #   - ./config/postgres/master/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
       - ./pg_data/master/:/var/lib/postgresql/data
+    command: ["postgres", "-c", "shared_preload_libraries=citus"]
     networks:
       otus-network:
         ipv4_address: "172.33.0.3"
     env_file: ".env"
   postgres_shard2:
-    image: postgres:16.1-alpine3.18
+    image: citusdata/citus:latest
     container_name: postgres_shard2
     environment:
       POSTGRES_DB: ${DB_NAME_SLAVE_2}
@@ -30,10 +31,30 @@ services:
     volumes:
     #   - ./config/postgres/master/pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
     #   - ./config/postgres/master/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
-      - ./pg_data/master/:/var/lib/postgresql/data
+      - ./pg_data/shard1/:/var/lib/postgresql/data
+    command: ["postgres", "-c", "shared_preload_libraries=citus"]
     networks:
       otus-network:
         ipv4_address: "172.33.0.12"
+    env_file: ".env"
+  postgres_citus:
+    image: citusdata/citus:latest
+    container_name: postgres_citus
+    environment:
+      POSTGRES_DB: ${DB_NAME_SLAVE_2}
+      POSTGRES_USER: ${DB_USER_SLAVE_2}
+      POSTGRES_PASSWORD: ${DB_PASSWORD_SLAVE_2}
+      TZ: Europe/Moscow
+    ports:
+      - 5431:5432
+    volumes:
+    #   - ./config/postgres/master/pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
+    #   - ./config/postgres/master/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
+      - ./pg_data/citus/:/var/lib/postgresql/data
+    command: ["postgres", "-c", "shared_preload_libraries=citus"]
+    networks:
+      otus-network:
+        ipv4_address: "172.33.0.19"
     env_file: ".env"
   redis:
     image: redis:alpine
