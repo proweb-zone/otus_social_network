@@ -18,16 +18,16 @@ services:
       otus-network:
         ipv4_address: "172.33.0.3"
     env_file: ".env"
-  postgres_shard2:
+  postgres_shard1:
     image: citusdata/citus:latest
-    container_name: postgres_shard2
+    container_name: postgres_shard1
     environment:
-      POSTGRES_DB: ${DB_NAME_SLAVE_2}
-      POSTGRES_USER: ${DB_USER_SLAVE_2}
-      POSTGRES_PASSWORD: ${DB_PASSWORD_SLAVE_2}
+      POSTGRES_DB: ${DB_NAME_SLAVE_1}
+      POSTGRES_USER: ${DB_USER_SLAVE_1}
+      POSTGRES_PASSWORD: ${DB_PASSWORD_SLAVE_1}
       TZ: Europe/Moscow
     ports:
-      - ${DB_PORT_SLAVE_2}:5432
+      - ${DB_PORT_SLAVE_1}:5432
     volumes:
     #   - ./config/postgres/master/pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
     #   - ./config/postgres/master/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
@@ -36,25 +36,6 @@ services:
     networks:
       otus-network:
         ipv4_address: "172.33.0.12"
-    env_file: ".env"
-  postgres_citus:
-    image: citusdata/citus:latest
-    container_name: postgres_citus
-    environment:
-      POSTGRES_DB: ${DB_NAME_SLAVE_2}
-      POSTGRES_USER: ${DB_USER_SLAVE_2}
-      POSTGRES_PASSWORD: ${DB_PASSWORD_SLAVE_2}
-      TZ: Europe/Moscow
-    ports:
-      - 5431:5432
-    volumes:
-    #   - ./config/postgres/master/pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
-    #   - ./config/postgres/master/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
-      - ./pg_data/citus/:/var/lib/postgresql/data
-    command: ["postgres", "-c", "shared_preload_libraries=citus"]
-    networks:
-      otus-network:
-        ipv4_address: "172.33.0.19"
     env_file: ".env"
   redis:
     image: redis:alpine
