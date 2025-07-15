@@ -36,10 +36,11 @@ CREATE TABLE posts (
 );
 
 CREATE TABLE dialog (
-    id SERIAL PRIMARY KEY,
-    User_id_sender INTEGER,
-	  User_id_recipient INTEGER,
-	  Msg TEXT,
+    id SERIAL,
+    user_id_sender INTEGER,
+	  user_id_recipient INTEGER,
+	  msg TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    primary key (id, user_id_sender, user_id_recipient)
 );
