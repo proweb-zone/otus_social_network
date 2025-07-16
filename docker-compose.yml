@@ -83,7 +83,7 @@ services:
       - "15674:15674"
     networks:
       otus-network:
-        ipv4_address: "172.33.0.6"
+        ipv4_address: "172.33.0.8"
     volumes:
       - ./rabbitmq_data:/var/lib/rabbitmq
     environment:

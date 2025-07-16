@@ -23,8 +23,7 @@ func main() {
 	flag.StringVar(&action, "action", "up", "path to config file")
 	flag.Parse()
 
-	// sqlDb := postgres.Connect(config)
-	// defer postgres.Close(sqlDb)
+	config.UrlsDb.DbMaster = "postgres://postgres:pass@0.0.0.0:5432/postgres?sslmode=disable"
 
 	masterURL := []string{config.UrlsDb.DbMaster}
 	slaveURLs := []string{
