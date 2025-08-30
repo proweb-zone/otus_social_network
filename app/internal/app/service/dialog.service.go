@@ -1,27 +1,58 @@
 package service
 
 import (
-	"otus_social_network/app/internal/app/dto"
-	"otus_social_network/app/internal/app/entity"
+	"context"
+	"encoding/json"
+	"fmt"
+	"log"
 	"otus_social_network/app/internal/app/repository"
+
+	eventclient "github.com/proweb-zone/event-client"
+	pb "github.com/proweb-zone/event-client/gen/go"
 )
 
 type DialogService struct {
-	repo *repository.DialogRepository
+	repo   *repository.FriendsRepository
+	client *eventclient.EventClient
 }
 
-func InitDialogService(repo *repository.DialogRepository) *DialogService {
-	return &DialogService{repo: repo}
+func NewDialogService(
+	newRepo *repository.FriendsRepository,
+	newClient *eventclient.EventClient,
+) *DialogService {
+	return &DialogService{
+		repo:   newRepo,
+		client: newClient,
+	}
 }
 
-func (d *DialogService) SendMsgUser(requestDialog *dto.DialogRequestDto) (*entity.Dialog, error) {
-	return d.repo.SendMsgUser(&entity.Dialog{
-		User_id_sender:    requestDialog.User_id_sender,
-		User_id_recipient: requestDialog.User_id_recipient,
-		Msg:               requestDialog.Msg,
+type EventReponse struct {
+	User_id_sender    int
+	User_id_recipient int
+	Id                int
+	Msg               string
+}
+
+func (d *DialogService) CheckUserAccess(event *pb.Event) (*pb.PublishResponse, error) {
+	payload := event.GetPayload()
+
+	parsedResponse := &EventReponse{}
+	if err := json.Unmarshal(payload, &parsedResponse); err != nil {
+		log.Fatalf("Failed to parse payload JSON: %v", err)
+	}
+
+	state := true
+
+	userId := parsedResponse.User_id_sender
+	friendId := parsedResponse.User_id_recipient
+	_, err := d.repo.GetFriendById(userId, friendId)
+	if err != nil {
+		state = false
+	}
+
+	return d.client.Publish(context.Background(), &pb.Event{
+		Type:    "user.access",
+		Source:  "otus-service",
+		Payload: []byte(fmt.Sprintf(`{"id": %d, "state": %t}`, parsedResponse.Id, state)),
 	})
-}
-
-func (d *DialogService) GetDialogList(userIdSender int, userIdRecepient int) (*[]entity.Dialog, error) {
-	return d.repo.GetDialogList(userIdSender, userIdRecepient)
 }

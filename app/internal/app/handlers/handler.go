@@ -3,14 +3,11 @@ package handlers
 import (
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"otus_social_network/app/internal/app/dto"
 	"otus_social_network/app/internal/app/entity"
-	"otus_social_network/app/internal/app/repository"
 	"otus_social_network/app/internal/app/service"
 	"otus_social_network/app/internal/config"
-	"otus_social_network/app/internal/db/postgres"
 	"otus_social_network/app/internal/utils"
 	"strconv"
 	"strings"
@@ -26,36 +23,18 @@ type Handler struct {
 	dialogService  *service.DialogService
 }
 
-func Init(config *config.Config) *Handler {
-
-	masterURL := []string{config.UrlsDb.DbMaster}
-	slaveURLs := []string{
-		config.UrlsDb.DbMaster,
-		config.UrlsDb.DbMaster,
-	}
-
-	dataSource, err := postgres.NewReplicationRoutingDataSource(masterURL, slaveURLs, true)
-	if err != nil {
-		log.Fatal(err)
-	}
-	//defer dataSource.Close()
-
-	userRepository := repository.InitUserRepository(dataSource)
-	userService := service.InitUserService(userRepository)
-
-	friendsRepository := repository.InitFriendsRepository(dataSource)
-	friendsService := service.InitFriendsService(friendsRepository)
-
-	postsRepository := repository.InitPostRepository(dataSource)
-	postsService := service.InitPostService(postsRepository)
-
-	dialogRepository := repository.InitDialogRepository(dataSource)
-	dialogService := service.InitDialogService(dialogRepository)
+func Init(
+	config *config.Config,
+	userService *service.UserService,
+	friendsService *service.FriendsService,
+	postService *service.PostService,
+	dialogService *service.DialogService,
+) *Handler {
 
 	return &Handler{
 		userService:    userService,
 		friendsService: friendsService,
-		postService:    postsService,
+		postService:    postService,
 		dialogService:  dialogService,
 	}
 }
@@ -458,85 +437,6 @@ func (h *Handler) FeedPostWebSocket(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.postService.FeedPostWebSocket(ids)
-}
-
-func (h *Handler) SendMsgUser(w http.ResponseWriter, r *http.Request) {
-	auth, errAccessToken := h.checkTokenAccess(r)
-
-	if errAccessToken != nil {
-		http.Error(w, "Error check Bearer Token", http.StatusBadRequest)
-		return
-	}
-
-	userId := auth.User_id
-
-	userIdRecepientStr := chi.URLParam(r, "user_id")
-	userIdRecepient, err := strconv.Atoi(userIdRecepientStr)
-	if err != nil {
-		http.Error(w, "Error: User id "+userIdRecepientStr+"  не найден", http.StatusBadRequest)
-		return
-	}
-
-	if userId == userIdRecepient {
-		http.Error(w, "Вы не можете отправлять письмо самим себе", http.StatusBadRequest)
-		return
-	}
-
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer r.Body.Close()
-
-	var requestDialogDto dto.DialogRequestDto
-	if err := utils.DecodeJson(body, &requestDialogDto); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	requestDialogDto.User_id_sender = userId
-	requestDialogDto.User_id_recipient = userIdRecepient
-
-	dialogId, errSendMsgUser := h.dialogService.SendMsgUser(&requestDialogDto)
-	if errSendMsgUser != nil {
-		http.Error(w, errSendMsgUser.Error(), http.StatusBadRequest)
-		return
-	}
-
-	//w.Write([]byte("success"))
-	utils.ResponseJson(dialogId, w)
-}
-
-func (h *Handler) GetDialog(w http.ResponseWriter, r *http.Request) {
-	auth, errAccessToken := h.checkTokenAccess(r)
-
-	if errAccessToken != nil {
-		http.Error(w, "Error check Bearer Token", http.StatusBadRequest)
-		return
-	}
-
-	userIdSender := auth.User_id
-
-	userIdRecepientStr := chi.URLParam(r, "user_id")
-	userIdRecepient, err := strconv.Atoi(userIdRecepientStr)
-	if err != nil {
-		http.Error(w, "Error: User id "+userIdRecepientStr+"  не найден", http.StatusBadRequest)
-		return
-	}
-
-	if userIdSender == userIdRecepient {
-		http.Error(w, "Вы не можете получать диалог самого себя", http.StatusBadRequest)
-		return
-	}
-
-	dialogList, errorDialog := h.dialogService.GetDialogList(userIdSender, userIdRecepient)
-	if errorDialog != nil {
-		http.Error(w, errorDialog.Error(), http.StatusBadRequest)
-		return
-	}
-
-	utils.ResponseJson(dialogList, w)
 }
 
 func (h *Handler) checkTokenAccess(r *http.Request) (*entity.Auth, error) {

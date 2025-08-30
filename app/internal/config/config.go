@@ -13,12 +13,17 @@ import (
 type Config struct {
 	Env        string `yaml:"env" env-default:"local"`
 	HTTPServer `yaml:"http_server"`
+	GrpcServer `yaml:"grpc_server"`
 	Db
 	UrlsDb
 }
 
 type HTTPServer struct {
 	ServerPort string `yaml:"server_port"`
+}
+
+type GrpcServer struct {
+	Addr string `yaml:"grpc_server_address"`
 }
 
 type Db struct {
@@ -33,18 +38,25 @@ type Db struct {
 
 type UrlsDb struct {
 	DbMaster string
-	DbSlave1 string
-	DbSlave2 string
-	DbSlave3 string
 }
 
 func MustInit(configPath string) *Config {
 	godotenv.Load(configPath)
 
+	env := MustGetEnv("ENV")
+
+	// определяем переменную db сервера в dev/prod режиме
+	dbPort := "5432"
+	dbHostMater := MustGetEnv("DB_HOST_MASTER")
+	if env == "DEV" {
+		dbHostMater = "localhost"
+		dbPort = MustGetEnv("DB_PORT_MASTER")
+	}
+
 	dbMaster := &Db{
 		Driver:   MustGetEnv("DB_DRIVER_MASTER"),
-		Host:     MustGetEnv("DB_HOST_MASTER"),
-		Port:     MustGetEnv("DB_PORT_MASTER"),
+		Host:     dbHostMater,
+		Port:     dbPort,
 		Name:     MustGetEnv("DB_NAME_MASTER"),
 		User:     MustGetEnv("DB_USER_MASTER"),
 		Password: MustGetEnv("DB_PASSWORD_MASTER"),
@@ -53,41 +65,11 @@ func MustInit(configPath string) *Config {
 
 	var urlDbMaster = buildDbConnectUrl(dbMaster)
 
-	dbSlave1 := &Db{
-		Driver:   MustGetEnv("DB_DRIVER_SLAVE_1"),
-		Host:     MustGetEnv("DB_HOST_SLAVE_1"),
-		Port:     MustGetEnv("DB_PORT_SLAVE_1"),
-		Name:     MustGetEnv("DB_NAME_SLAVE_1"),
-		User:     MustGetEnv("DB_USER_SLAVE_1"),
-		Password: MustGetEnv("DB_PASSWORD_SLAVE_1"),
-		Option:   MustGetEnv("DB_OPTION_SLAVE_1"),
+	// определяем переменную grpc сервера в dev/prod режиме
+	grpcAddrServer := MustGetEnv("GRPC_SERVER_ADDRESS")
+	if env == "DEV" {
+		grpcAddrServer = MustGetEnv("GRPC_SERVER_ADDRESS_DEV")
 	}
-
-	var urlDbSlave1 = buildDbConnectUrl(dbSlave1)
-
-	dbSlave2 := &Db{
-		Driver:   MustGetEnv("DB_DRIVER_SLAVE_2"),
-		Host:     MustGetEnv("DB_HOST_SLAVE_2"),
-		Port:     MustGetEnv("DB_PORT_SLAVE_2"),
-		Name:     MustGetEnv("DB_NAME_SLAVE_2"),
-		User:     MustGetEnv("DB_USER_SLAVE_2"),
-		Password: MustGetEnv("DB_PASSWORD_SLAVE_2"),
-		Option:   MustGetEnv("DB_OPTION_SLAVE_2"),
-	}
-
-	var urlDbSlave2 = buildDbConnectUrl(dbSlave2)
-
-	dbSlave3 := &Db{
-		Driver:   MustGetEnv("DB_DRIVER_SLAVE_3"),
-		Host:     MustGetEnv("DB_HOST_SLAVE_3"),
-		Port:     MustGetEnv("DB_PORT_SLAVE_3"),
-		Name:     MustGetEnv("DB_NAME_SLAVE_3"),
-		User:     MustGetEnv("DB_USER_SLAVE_3"),
-		Password: MustGetEnv("DB_PASSWORD_SLAVE_3"),
-		Option:   MustGetEnv("DB_OPTION_SLAVE_3"),
-	}
-
-	var urlDbSlave3 = buildDbConnectUrl(dbSlave3)
 
 	return &Config{
 		Env: MustGetEnv("ENV"),
@@ -95,11 +77,11 @@ func MustInit(configPath string) *Config {
 			ServerPort: MustGetEnv("SERVER_PORT"),
 		},
 		Db: *dbMaster,
+		GrpcServer: GrpcServer{
+			Addr: grpcAddrServer,
+		},
 		UrlsDb: UrlsDb{
 			DbMaster: urlDbMaster,
-			DbSlave1: urlDbSlave1,
-			DbSlave2: urlDbSlave2,
-			DbSlave3: urlDbSlave3,
 		},
 	}
 }

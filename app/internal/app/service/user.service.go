@@ -9,18 +9,21 @@ import (
 	"otus_social_network/app/internal/utils"
 	"strings"
 	"time"
+
+	eventclient "github.com/proweb-zone/event-client"
+	pb "github.com/proweb-zone/event-client/gen/go"
 )
 
 type UserService struct {
-	repo *repository.UserRepository
+	repo   *repository.UserRepository
+	client *eventclient.EventClient
 }
 
-func InitUserService(repo *repository.UserRepository) *UserService {
-	return &UserService{repo: repo}
+func InitUserService(repo *repository.UserRepository, newClient *eventclient.EventClient) *UserService {
+	return &UserService{repo: repo, client: newClient}
 }
 
 func (u *UserService) Login(ctx context.Context, requestDto *dto.AuthRequestDto) (*dto.AuthResponseDto, error) {
-
 	user, err := u.repo.GetUserByEmail(
 		ctx,
 		&requestDto.Email,
@@ -46,9 +49,7 @@ func (u *UserService) Login(ctx context.Context, requestDto *dto.AuthRequestDto)
 
 	if tokenByUserId != nil && len(tokenByUserId.Token) > 0 {
 		authResponse.Bearer_token = tokenByUserId.Token
-		return &authResponse, nil
 	} else {
-
 		token := utils.GenerateToken(32)
 
 		auth, err := u.repo.CreateToken(
@@ -58,14 +59,20 @@ func (u *UserService) Login(ctx context.Context, requestDto *dto.AuthRequestDto)
 		)
 
 		if err != nil {
+			fmt.Println(err)
 			return nil, err
 		}
 
 		authResponse.Bearer_token = auth.Token
-
-		return &authResponse, nil
 	}
 
+	u.client.Publish(context.Background(), &pb.Event{
+		Type:    "user.auth",
+		Source:  "otus-service",
+		Payload: []byte(fmt.Sprintf(`{"User_id": %d, "Token": "%s"}`, user.ID, authResponse.Bearer_token)),
+	})
+
+	return &authResponse, nil
 }
 
 func (u *UserService) Register(ctx context.Context, request *dto.UsersRequestDto) (*dto.UsersResponseDto, error) {
