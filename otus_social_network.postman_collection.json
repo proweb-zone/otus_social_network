@@ -13,7 +13,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"email\": \"1402@gmail.com\",\n    \"password\": \"123123Vc\",\n    \"first_name\": \"Семен\",\n    \"last_name\": \"Иванов\",\n    \"birth_date\": \"1992-03-12\",\n    \"gender\": \"man\",\n    \"hobby\": \"travel, tennis\",\n    \"city\": \"Moscow\"\n}",
+					"raw": "{\n    \"email\": \"1@gmail.com\",\n    \"password\": \"123123Vc\",\n    \"first_name\": \"Семен\",\n    \"last_name\": \"Иванов\",\n    \"birth_date\": \"1992-03-12\",\n    \"gender\": \"man\",\n    \"hobby\": \"travel, tennis\",\n    \"city\": \"Moscow\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -21,12 +21,12 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3002/user/register",
+					"raw": "http://localhost:3003/user/register",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "3002",
+					"port": "3003",
 					"path": [
 						"user",
 						"register"
@@ -82,12 +82,12 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3002/user/get/1",
+					"raw": "http://localhost:3003/user/get/1",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "3002",
+					"port": "3003",
 					"path": [
 						"user",
 						"get",
@@ -152,12 +152,12 @@
 				"method": "PUT",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3002/friend/delete/1",
+					"raw": "http://localhost:3003/friend/delete/1",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "3002",
+					"port": "3003",
 					"path": [
 						"friend",
 						"delete",
@@ -183,12 +183,12 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3002/post/get/1",
+					"raw": "http://localhost:3003/post/get/1",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "3002",
+					"port": "3003",
 					"path": [
 						"post",
 						"get",
@@ -214,12 +214,12 @@
 				"method": "PUT",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3002/post/delete/1",
+					"raw": "http://localhost:3003/post/delete/1",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "3002",
+					"port": "3003",
 					"path": [
 						"post",
 						"delete",
@@ -254,12 +254,12 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3002/post/create",
+					"raw": "http://localhost:3003/post/create",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "3002",
+					"port": "3003",
 					"path": [
 						"post",
 						"create"
@@ -292,12 +292,12 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3002/post/feed",
+					"raw": "http://localhost:3003/post/feed",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "3002",
+					"port": "3003",
 					"path": [
 						"post",
 						"feed"

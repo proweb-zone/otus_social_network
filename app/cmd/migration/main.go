@@ -1,11 +1,9 @@
 package main
 
 import (
-	"context"
 	"database/sql"
 	"flag"
 	"fmt"
-	"log"
 
 	"otus_social_network/app/internal/config"
 	"otus_social_network/app/internal/db/postgres"
@@ -23,27 +21,11 @@ func main() {
 	flag.StringVar(&action, "action", "up", "path to config file")
 	flag.Parse()
 
-	config.UrlsDb.DbMaster = "postgres://postgres:pass@0.0.0.0:5433/postgres?sslmode=disable"
-
-	masterURL := []string{config.UrlsDb.DbMaster}
-	slaveURLs := []string{
-		config.UrlsDb.DbMaster,
-	}
-
-	sqlDb, err := postgres.NewReplicationRoutingDataSource(masterURL, slaveURLs, true)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	ctx := context.Background()
-	masterDb, err := sqlDb.GetDBMaster(ctx)
-	if err != nil {
-		fmt.Errorf("")
-	}
-	//defer sqlDb.Close()
+	conn := postgres.Connect(config)
+	defer postgres.Close(conn)
 
 	migrator := migrator.MustGetNewMigrator(config.Db.Name)
-	switchAndExecMigrateAction(action, migrator, masterDb)
+	switchAndExecMigrateAction(action, migrator, conn)
 }
 
 func switchAndExecMigrateAction(action string, migrator *migrator.Migrator, conn *sql.DB) {

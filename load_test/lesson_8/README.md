@@ -49,7 +49,7 @@ cd /my_path/event-getaway/
 docker compose up -d
 
 # проводим миграцию БД
-make migration-up
+docker exec -it ms-dialog make migration-up
 ```
 3) Переходим в проект ms_dialog и запускаем docker контейнер и делаем миграцию БД
 
@@ -61,7 +61,7 @@ cd /my_path/ms_dialog/
 docker compose up -d
 
 # проводим миграцию БД
-make migration-up
+docker exec -it app_socnet make migration-up
 ```
 Далее делаем все через Postman
 
