@@ -17,7 +17,6 @@ import (
 	"github.com/go-chi/chi"
 	_ "github.com/lib/pq"
 	eventclient "github.com/proweb-zone/event-client"
-	pb "github.com/proweb-zone/event-client/gen/go"
 )
 
 type HTTPServer struct {
@@ -104,9 +103,4 @@ func StartServer(config *config.Config) {
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 	<-sigChan
 	log.Println("Shutting down...")
-}
-
-func test(event *pb.Event) error {
-
-	return nil
 }
