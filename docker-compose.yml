@@ -71,6 +71,8 @@ services:
     hostname: app
     depends_on:
       - postgres_master
+      - redis
+      - rabbitmq
     env_file:
       - .env
 
