@@ -45,7 +45,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"email\": \"1402@gmail.com\",\n    \"password\": \"123123Vc\"\n}",
+					"raw": "{\n    \"email\": \"3@gmail.com\",\n    \"password\": \"123123Vc\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -53,12 +53,12 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3002/login",
+					"raw": "http://localhost:3003/login",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "3002",
+					"port": "3003",
 					"path": [
 						"login"
 					]
@@ -113,7 +113,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "G4wybdzmbIzDbUfeHUfhWBFGUxaabEAR",
+							"value": "VbfViVlc7K7imROd0fWFbjtrEaCSNYve",
 							"type": "string"
 						}
 					]
@@ -121,16 +121,16 @@
 				"method": "PUT",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3002/friend/set/3",
+					"raw": "http://localhost:3003/friend/set/2",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "3002",
+					"port": "3003",
 					"path": [
 						"friend",
 						"set",
-						"3"
+						"2"
 					]
 				}
 			},
@@ -314,7 +314,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "a8Vs8TZLz1cImiKUYvGCZPkGAsg7I0Jj",
+							"value": "PHChLE2mHwTaMWV4siKHnfogPH7iEE2x",
 							"type": "string"
 						}
 					]
@@ -323,7 +323,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"Msg\": \"привет\"\n}",
+					"raw": "{\n    \"Msg\": \"привет hisdf\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -331,13 +331,14 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3002/dialog/3/send",
+					"raw": "http://localhost:3002/v2/dialog/3/send",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
 					"port": "3002",
 					"path": [
+						"v2",
 						"dialog",
 						"3",
 						"send"
@@ -350,7 +351,21 @@
 			"name": "Получение диалога пользователя",
 			"request": {
 				"method": "GET",
-				"header": []
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3002/v2/dialog/{user_id}/list",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3002",
+					"path": [
+						"v2",
+						"dialog",
+						"{user_id}",
+						"list"
+					]
+				}
 			},
 			"response": []
 		},
